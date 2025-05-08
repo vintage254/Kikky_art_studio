@@ -29,8 +29,10 @@ process.on('uncaughtException', (error: any) => {
     errorString.includes('db_termination') || 
     errorString.includes('Connection terminated') ||
     errorString.includes(':shutdown') ||
+    errorString.includes('{:shutdown') ||  // Added to catch Erlang-style errors
     (error.code === 'XX000' && error.severity === 'FATAL')
   ) {
+    console.log('==== DATABASE CONNECTION TERMINATED ====');
     console.log('Database connection was terminated by Supabase. This is expected behavior with serverless databases.');
     console.log('The application will continue running and reconnect automatically on the next database operation.');
     
@@ -39,8 +41,13 @@ process.on('uncaughtException', (error: any) => {
     
     if (consecutiveDbErrors >= MAX_DB_ERRORS) {
       console.log(`Detected ${consecutiveDbErrors} consecutive database errors. Attempting recovery...`);
-      // We don't exit the process since nodemon will restart it
-      return;
+      
+      // Force a delay before next database operation to allow Supabase to recover
+      setTimeout(() => {
+        console.log('Recovery delay completed. Operations will resume on next request.');
+        // Reset counter after recovery attempt
+        consecutiveDbErrors = 0;
+      }, 5000);
     }
     
     return; // Prevent the process from exiting

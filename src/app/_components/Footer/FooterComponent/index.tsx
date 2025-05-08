@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -9,17 +9,23 @@ import { Footer, Media } from '../../../../payload/payload-types'
 import { inclusions, noHeaderFooterUrls, profileNavItems } from '../../../constants'
 import { Button } from '../../Button'
 import { Gutter } from '../../Gutter'
+import canUseDOM from '../../../_utilities/canUseDOM'
 
 import classes from './index.module.scss'
 
 const FooterComponent = ({ footer }: { footer: Footer }) => {
   const pathname = usePathname()
+  const [shouldHide, setShouldHide] = useState(false)
   const navItems = footer?.navItems || []
 
-  return (
-    <footer className={noHeaderFooterUrls.includes(pathname) ? classes.hide : ''}>
-      
+  useEffect(() => {
+    if (pathname) {
+      setShouldHide(noHeaderFooterUrls.includes(pathname))
+    }
+  }, [pathname])
 
+  return (
+    <footer className={shouldHide ? classes.hide : ''}>
       <div className={classes.footer}>
         <Gutter>
           <div className={classes.wrap}>

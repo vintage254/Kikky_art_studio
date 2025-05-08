@@ -82,17 +82,20 @@ export default buildConfig({
       user: 'postgres.njcowccdmobbgjfzkjqo',
       password: process.env.DATABASE_URI?.match(/postgres\.njcowccdmobbgjfzkjqo:([^@]+)@/)?.[1] || '',
       host: 'aws-0-us-east-2.pooler.supabase.com',
-      port: 5432,
+      port: 6543,
       database: 'postgres',
       ssl: {
         rejectUnauthorized: false // Allow self-signed certificates
       },
       // Add connection pool settings to handle Supabase terminations
-      max: 8, // Limit max connections
+      max: 4, // Reduced from 8 to 4 to reduce connection load
       min: 1, // Minimum connections
       idleTimeoutMillis: 30000, // Reduce idle timeout to 30 seconds
       connectionTimeoutMillis: 10000, // Add connection timeout
       allowExitOnIdle: false, // Prevent closing connections on idle
+      // Added parameters for transaction pooler
+      application_name: 'payload_cms',
+      connectionString: process.env.DATABASE_URI?.replace('5432', '6543') + '?pgbouncer=true'
     },
   }),
   // database-adapter-config-end
