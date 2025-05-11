@@ -80,32 +80,42 @@ export default buildConfig({
   },
   editor: slateEditor({}), // editor-config
   // database-adapter-config-start
-  db: mongooseAdapter({
-    url: process.env.DATABASE_URI,
-    connectOptions: {
-      // SSL/TLS Settings
-      ssl: true,
-      tls: true,
-      tlsInsecure: true,
-      
-      // Retry Settings - essential for fixing write conflicts
-      retryWrites: true,
-      retryReads: true,
-      w: 'majority',
-      
-      // Connection Pool Configuration
-      maxPoolSize: 15,
-      minPoolSize: 5,
-      maxIdleTimeMS: 30000,
-      
-      // Timeout Settings
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 30000,
-      serverSelectionTimeoutMS: 15000,
-    },
-    // Disable transactions to prevent write conflicts
-    transactionOptions: false,
-  }),
+  db: process.env.NEXT_PUBLIC_SKIP_DB_CONNECTION === 'true'
+    ? // Use a minimal mock adapter during Vercel builds to avoid DB connection
+      mongooseAdapter({
+        url: 'mongodb://mock:27017/mock',
+        connectOptions: {
+          // These options prevent actual connection attempts
+          serverSelectionTimeoutMS: 100,
+          socketTimeoutMS: 100,
+        },
+      })
+    : mongooseAdapter({
+        url: process.env.DATABASE_URI,
+        connectOptions: {
+          // SSL/TLS Settings
+          ssl: true,
+          tls: true,
+          tlsInsecure: true,
+          
+          // Retry Settings - essential for fixing write conflicts
+          retryWrites: true,
+          retryReads: true,
+          w: 'majority',
+          
+          // Connection Pool Configuration
+          maxPoolSize: 15,
+          minPoolSize: 5,
+          maxIdleTimeMS: 30000,
+          
+          // Timeout Settings
+          socketTimeoutMS: 45000,
+          connectTimeoutMS: 30000,
+          serverSelectionTimeoutMS: 15000,
+        },
+        // Disable transactions to prevent write conflicts
+        transactionOptions: false,
+      }),
   // database-adapter-config-end
   serverURL: process.env.PAYLOAD_PUBLIC_SERVER_URL,
   collections: [Pages, Products, Orders, Media, Categories, Users, Payments],

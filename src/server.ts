@@ -58,34 +58,50 @@ process.on('uncaughtException', (error: any) => {
 })
 
 const start = async (): Promise<void> => {
-  await payload.init({
-    secret: process.env.PAYLOAD_SECRET || '',
-    express: app,
-    onInit: () => {
-      payload.logger.info(`Payload Admin URL: ${payload.getAdminURL()}`)
-      // Reset error counter on successful initialization
-      consecutiveDbErrors = 0;
-    },
-  })
-
-  // Setup a database keep-alive to prevent Supabase from suspending
-  const KEEP_ALIVE_INTERVAL = 4 * 60 * 1000; // 4 minutes (just under Supabase's 5-minute suspension)
-  setInterval(async () => {
-    try {
-      // Use a simple collection count operation to ping the database
-      await payload.find({
-        collection: 'users',
-        limit: 1,
-        depth: 0 // Don't populate relations to keep it lightweight
-      });
-      
-      if (process.env.NODE_ENV !== 'production') {
-        payload.logger.info('Database keep-alive ping successful');
-      }
-    } catch (error) {
-      payload.logger.error('Database keep-alive ping failed:', error);
+  // Skip database initialization during Vercel build
+  if (process.env.NEXT_BUILD && process.env.NEXT_PUBLIC_SKIP_DB_CONNECTION === 'true') {
+    payload.logger.info('Skipping database connection during build...')
+    
+    if (process.env.NEXT_BUILD) {
+      app.listen(PORT, async () => {
+        payload.logger.info(`Next.js is now building...`)
+        // @ts-expect-error
+        await nextBuild(path.join(__dirname, '../'))
+        process.exit()
+      })
+      return
     }
-  }, KEEP_ALIVE_INTERVAL);
+  } else {
+    // Normal initialization with database connection
+    await payload.init({
+      secret: process.env.PAYLOAD_SECRET || '',
+      express: app,
+      onInit: () => {
+        payload.logger.info(`Payload Admin URL: ${payload.getAdminURL()}`)
+        // Reset error counter on successful initialization
+        consecutiveDbErrors = 0;
+      },
+    })
+
+    // Setup a database keep-alive to prevent Supabase from suspending
+    const KEEP_ALIVE_INTERVAL = 4 * 60 * 1000; // 4 minutes (just under Supabase's 5-minute suspension)
+    setInterval(async () => {
+      try {
+        // Use a simple collection count operation to ping the database
+        await payload.find({
+          collection: 'users',
+          limit: 1,
+          depth: 0 // Don't populate relations to keep it lightweight
+        });
+        
+        if (process.env.NODE_ENV !== 'production') {
+          payload.logger.info('Database keep-alive ping successful');
+        }
+      } catch (error) {
+        payload.logger.error('Database keep-alive ping failed:', error);
+      }
+    }, KEEP_ALIVE_INTERVAL);
+  }
 
   // Add static file service for assets
   app.use('/assets', express.static(path.resolve(__dirname, '../public')))

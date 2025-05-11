@@ -13,6 +13,26 @@ const nextConfig = {
       .filter(Boolean)
       .map(url => url.replace(/https?:\/\//, '')),
   },
+  // Add environment variables that should be available to the client
+  env: {
+    NEXT_PUBLIC_SKIP_DB_CONNECTION: process.env.NEXT_PUBLIC_SKIP_DB_CONNECTION,
+    PAYLOAD_PUBLIC_SERVER_URL: process.env.PAYLOAD_PUBLIC_SERVER_URL,
+    NEXT_PUBLIC_SERVER_URL: process.env.NEXT_PUBLIC_SERVER_URL || process.env.VERCEL_URL,
+  },
+  // Configure webpack for handling dynamic imports
+  webpack: (config, { isServer }) => {
+    // Fixes npm packages that depend on `fs` module
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    
+    return config;
+  },
   async redirects() {
     return []
   },
