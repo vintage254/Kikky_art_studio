@@ -31,8 +31,9 @@ export const fetchDocs = async <T>(
   collection: keyof Config['collections'],
   draft?: boolean,
 ): Promise<T[]> => {
-  // Skip API calls during build if env variable is set
-  if (process.env.SKIP_API_DURING_BUILD === 'true' && process.env.NODE_ENV === 'production') {
+  // Skip API calls during build if env variable is set or URL is not available
+  if ((process.env.SKIP_API_DURING_BUILD === 'true' && process.env.NODE_ENV === 'production') ||
+      !GRAPHQL_API_URL) {
     console.log(`Skipping API call to fetch ${collection} during build`)
     return [] as T[]
   }
@@ -47,6 +48,8 @@ export const fetchDocs = async <T>(
   }
 
   try {
+    console.log(`Fetching ${collection} from ${GRAPHQL_API_URL}/api/graphql`)
+    
     const docs: T[] = await fetch(`${GRAPHQL_API_URL}/api/graphql`, {
       method: 'POST',
       headers: {
@@ -69,10 +72,7 @@ export const fetchDocs = async <T>(
     return docs
   } catch (error) {
     console.error(`Error fetching ${collection}:`, error)
-    // Return empty array instead of throwing during production build
-    if (process.env.NODE_ENV === 'production') {
-      return [] as T[]
-    }
-    throw error
+    // Return empty array instead of throwing in all environments to prevent crashes
+    return [] as T[]
   }
 }

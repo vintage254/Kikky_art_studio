@@ -22,15 +22,22 @@ module.exports = {
 };
 EOL
 
+# Determine server URLs
+DEPLOY_URL=${VERCEL_URL:+https://$VERCEL_URL}
+if [ -z "$DEPLOY_URL" ]; then
+  DEPLOY_URL="https://kikky-art-studio.vercel.app"
+fi
+
 # Create or update .env file with necessary variables
 echo "Creating .env file with proper configuration"
 cat > .env << EOL
 PAYLOAD_PUBLIC_SKIP_DB_CONNECTION=true
 NEXT_PUBLIC_SKIP_DB_CONNECTION=true
-PAYLOAD_PUBLIC_SERVER_URL=${VERCEL_URL:+https://$VERCEL_URL}
-NEXT_PUBLIC_SERVER_URL=${VERCEL_URL:+https://$VERCEL_URL}
+PAYLOAD_PUBLIC_SERVER_URL=${DEPLOY_URL}
+NEXT_PUBLIC_SERVER_URL=${DEPLOY_URL}
 NEXT_PUBLIC_IS_PRODUCTION=true
 VERCEL_DEPLOYMENT=true
+SKIP_API_DURING_BUILD=true
 EOL
 
 # Add database URI if it exists in environment
@@ -67,11 +74,18 @@ fi
 echo "Build environment:"
 echo "NODE_ENV: $NODE_ENV"
 echo "VERCEL_URL: $VERCEL_URL"
-echo "Next.js will use server URL: ${VERCEL_URL:+https://$VERCEL_URL}"
+echo "Deployment URL: $DEPLOY_URL"
+
+# Create a special override file for the shared API URL
+mkdir -p src/app/_api
+cat > src/app/_api/shared.ts << EOL
+// During build, return the proper deployment URL
+export const GRAPHQL_API_URL = "${DEPLOY_URL}";
+EOL
 
 # Run the build process without linting
 echo "Running build process with linting disabled"
-cross-env NODE_ENV=production NEXT_PUBLIC_SKIP_DB_CONNECTION=true PAYLOAD_PUBLIC_SKIP_DB_CONNECTION=true yarn build:payload && \
+cross-env NODE_ENV=production NEXT_PUBLIC_SKIP_DB_CONNECTION=true PAYLOAD_PUBLIC_SKIP_DB_CONNECTION=true SKIP_API_DURING_BUILD=true yarn build:payload && \
   yarn build:server && \
   yarn copyfiles && \
-  cross-env PAYLOAD_CONFIG_PATH=dist/payload/payload.config.js NEXT_BUILD=true NEXT_PUBLIC_SKIP_DB_CONNECTION=true next build --no-lint 
+  cross-env PAYLOAD_CONFIG_PATH=dist/payload/payload.config.js NEXT_BUILD=true NEXT_PUBLIC_SKIP_DB_CONNECTION=true SKIP_API_DURING_BUILD=true next build --no-lint 
