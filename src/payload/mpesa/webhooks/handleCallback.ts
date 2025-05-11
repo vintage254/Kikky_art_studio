@@ -87,9 +87,9 @@ export const handleMpesaCallback: PayloadHandler = async (req, res): Promise<voi
           order: order.id,
         };
         
-        // Use type casting to handle the collection name
+        // Use 'as any' to bypass strict type checking since we know 'payments' is a valid collection
         await payload.create({
-          collection: 'payments' as keyof Config['collections'],
+          collection: 'payments' as any,
           data: paymentData,
         });
       }
