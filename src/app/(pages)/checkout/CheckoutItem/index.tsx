@@ -7,7 +7,7 @@ import classes from './index.module.scss'
 
 export const CheckoutItem = ({ product, title, metaImage, quantity, index }) => {
   return (
-    <li className={classes.item} key={index}>
+    <li className={classes.item}>
       <Link href={`/products/${product.slug}`} className={classes.mediaWrapper}>
         {!metaImage && <span>No image</span>}
         {metaImage && typeof metaImage !== 'string' && (

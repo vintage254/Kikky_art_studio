@@ -156,26 +156,62 @@ export const CartProvider = props => {
     if (user) {
       try {
         const syncCartToPayload = async () => {
-          const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/${user.id}`, {
-            // Make sure to include cookies with fetch
-            credentials: 'include',
-            method: 'PATCH',
-            body: JSON.stringify({
-              cart: flattenedCart,
-            }),
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          })
+          // Simplify the cart structure to minimize potential data conflicts
+          const simplifiedCart = {
+            cart: {
+              items: (flattenedCart.items || []).map(item => ({
+                product: item.product,
+                quantity: item.quantity || 0,
+              })),
+            }
+          }
+          
+          // Use a try-catch block with retries for resilience against MongoDB write conflicts
+          let attempts = 0;
+          const maxAttempts = 3;
+          let success = false;
+          
+          while (attempts < maxAttempts && !success) {
+            try {
+              attempts++;
+              
+              const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/${user.id}`, {
+                credentials: 'include',
+                method: 'PATCH',
+                body: JSON.stringify(simplifiedCart),
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              })
 
-          if (req.ok) {
-            localStorage.setItem('cart', '[]')
+              if (req.ok) {
+                localStorage.setItem('cart', '[]')
+                success = true;
+              } else {
+                // Get specific error for debugging
+                const errorText = await req.text();
+                console.error(`Error syncing cart (attempt ${attempts}):`, errorText);
+                
+                // Wait before retrying (exponential backoff)
+                if (attempts < maxAttempts) {
+                  await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempts - 1)));
+                }
+              }
+            } catch (err) {
+              console.error(`Cart sync attempt ${attempts} failed:`, err);
+              
+              // Wait before retrying
+              if (attempts < maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempts - 1)));
+              }
+            }
           }
         }
 
+        // Don't block rendering on cart sync
         syncCartToPayload()
       } catch (e) {
-        console.error('Error while syncing cart to Payload.') // eslint-disable-line no-console
+        console.error('Error while syncing cart to Payload:', e)
       }
     } else {
       localStorage.setItem('cart', JSON.stringify(flattenedCart))

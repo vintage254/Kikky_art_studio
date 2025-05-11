@@ -24,9 +24,9 @@ export const Image: React.FC<MediaProps> = props => {
 
   const [isLoading, setIsLoading] = React.useState(true)
 
-  let width: number | undefined
-  let height: number | undefined
-  let alt = altFromProps
+  let width: number | undefined = 500 // Default width if none provided
+  let height: number | undefined = 500 // Default height if none provided
+  let alt = altFromProps || '' // Ensure alt is never undefined
   let src: StaticImageData | string = srcFromProps || ''
 
   if (!src && resource && typeof resource !== 'string') {
@@ -37,9 +37,9 @@ export const Image: React.FC<MediaProps> = props => {
       alt: altFromResource,
     } = resource
 
-    width = fullWidth
-    height = fullHeight
-    alt = altFromResource
+    width = fullWidth || width
+    height = fullHeight || height
+    alt = altFromResource || alt
 
     const filename = fullFilename
 
@@ -57,7 +57,7 @@ export const Image: React.FC<MediaProps> = props => {
         .filter(Boolean)
         .join(' ')}
       src={src}
-      alt={alt || ''}
+      alt={alt}
       onClick={onClick}
       onLoad={() => {
         setIsLoading(false)
@@ -70,6 +70,7 @@ export const Image: React.FC<MediaProps> = props => {
       height={!fill ? height : undefined}
       sizes={sizes}
       priority={priority}
+      style={{ objectFit: 'contain' }} // Add object-fit property to maintain aspect ratio
     />
   )
 }

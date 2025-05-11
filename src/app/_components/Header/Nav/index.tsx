@@ -13,12 +13,30 @@ import classes from './index.module.scss'
 
 export const HeaderNav: React.FC<{ header: HeaderType }> = ({ header }) => {
   const navItems = header?.navItems || []
-  const { user } = useAuth()
-  const [navClass, setNavClass] = useState('')
+  const [isClient, setIsClient] = useState(false)
+  const [navClass, setNavClass] = useState(classes.nav)
+  
+  // Always call useAuth hook to follow React's rules of hooks
+  const auth = useAuth()
+  // Only use the auth value if on the client
+  const user = isClient ? auth.user : undefined
 
+  // Handle client-side initialization
   useEffect(() => {
-    setNavClass([classes.nav, user === undefined && classes.hide].filter(Boolean).join(' '))
-  }, [user])
+    setIsClient(true)
+  }, [])
+  
+  // Update nav class when user state changes
+  useEffect(() => {
+    if (isClient) {
+      setNavClass([classes.nav, user === undefined && classes.hide].filter(Boolean).join(' '))
+    }
+  }, [user, isClient])
+
+  // If not on client yet, render a placeholder to avoid hydration mismatch
+  if (!isClient) {
+    return <nav className={classes.nav}></nav>
+  }
 
   return (
     <nav className={navClass}>
@@ -33,10 +51,8 @@ export const HeaderNav: React.FC<{ header: HeaderType }> = ({ header }) => {
           href="/login"
           label="Login"
           appearance="primary"
-          onClick={() => (window.location.href = '/login')}
         />
       )}
-      {user && <CartLink />}
     </nav>
   )
 }

@@ -68,6 +68,25 @@ const start = async (): Promise<void> => {
     },
   })
 
+  // Setup a database keep-alive to prevent Supabase from suspending
+  const KEEP_ALIVE_INTERVAL = 4 * 60 * 1000; // 4 minutes (just under Supabase's 5-minute suspension)
+  setInterval(async () => {
+    try {
+      // Use a simple collection count operation to ping the database
+      await payload.find({
+        collection: 'users',
+        limit: 1,
+        depth: 0 // Don't populate relations to keep it lightweight
+      });
+      
+      if (process.env.NODE_ENV !== 'production') {
+        payload.logger.info('Database keep-alive ping successful');
+      }
+    } catch (error) {
+      payload.logger.error('Database keep-alive ping failed:', error);
+    }
+  }, KEEP_ALIVE_INTERVAL);
+
   // Add static file service for assets
   app.use('/assets', express.static(path.resolve(__dirname, '../public')))
 

@@ -1,0 +1,105 @@
+@import '../../../_css/common';
+
+.form {
+  margin-top: base(2);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: base(1);
+}
+
+.formHeader {
+  margin-bottom: base(2);
+
+  h3 {
+    margin-bottom: base(0.5);
+  }
+
+  p {
+    color: var(--theme-text-subtle);
+  }
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: base(0.5);
+  margin-bottom: base(1.5);
+}
+
+.label {
+  font-weight: 600;
+  margin-bottom: base(0.25);
+}
+
+.input {
+  padding: base(0.75);
+  border: 1px solid var(--theme-border-color);
+  background-color: var(--theme-input-bg);
+  color: var(--theme-text);
+  border-radius: 0;
+  font-size: base(0.9);
+  width: 100%;
+  transition: all 0.2s ease-in-out;
+
+  &:focus {
+    outline: none;
+    border-color: var(--theme-primary);
+  }
+}
+
+.inputHint {
+  font-size: base(0.75);
+  color: var(--theme-text-subtle);
+}
+
+.orderSummary {
+  margin: base(2) 0;
+  padding: base(1.5);
+  background-color: var(--theme-bg-subtle);
+  border-radius: 4px;
+}
+
+.orderItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+}
+
+.orderAmount {
+  font-size: base(1.1);
+  color: var(--theme-primary);
+}
+
+.actions {
+  margin-top: base(1);
+  display: flex;
+  gap: base(1);
+}
+
+.submitButton {
+  width: 100%;
+  padding: base(1);
+  font-weight: 600;
+}
+
+@include mid-break {
+  .form {
+    margin-top: base(1);
+  }
+  
+  .formHeader {
+    margin-bottom: base(1.5);
+  }
+}
+
+@include small-break {
+  .form {
+    margin-top: base(0.5);
+  }
+  
+  .actions {
+    flex-direction: column;
+  }
+} 

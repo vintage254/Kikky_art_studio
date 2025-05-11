@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const ContentSecurityPolicy = require('./csp')
-const redirects = require('./redirects')
+const { withPayload } = require('@payloadcms/next/withPayload')
 
 const nextConfig = {
   typescript: {
@@ -13,7 +13,9 @@ const nextConfig = {
       .filter(Boolean)
       .map(url => url.replace(/https?:\/\//, '')),
   },
-  redirects,
+  async redirects() {
+    return []
+  },
   async headers() {
     const headers = []
 
@@ -50,4 +52,5 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+// Make sure to wrap nextConfig with withPayload
+module.exports = withPayload(nextConfig)

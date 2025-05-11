@@ -6,7 +6,7 @@ import CategoryCard from './CategoryCard'
 
 import classes from './index.module.scss'
 
-const Categories = ({ categories }: { categories: Category[] }) => {
+const Categories = ({ categories }: { categories: Category[] | null }) => {
   return (
     <section className={classes.container}>
       <div className={classes.titleWrapper}>
@@ -15,9 +15,13 @@ const Categories = ({ categories }: { categories: Category[] }) => {
       </div>
 
       <div className={classes.list}>
-        {categories.map(category => {
-          return <CategoryCard key={category.id} category={category} />
-        })}
+        {categories && categories.length > 0 ? (
+          categories.map(category => {
+            return <CategoryCard key={category.id} category={category} />
+          })
+        ) : (
+          <p>No categories found</p>
+        )}
       </div>
     </section>
   )

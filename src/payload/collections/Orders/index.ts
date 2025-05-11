@@ -12,7 +12,7 @@ export const Orders: CollectionConfig = {
   slug: 'orders',
   admin: {
     useAsTitle: 'createdAt',
-    defaultColumns: ['createdAt', 'orderedBy'],
+    defaultColumns: ['createdAt', 'orderedBy', 'paymentMethod', 'paymentStatus'],
     preview: doc => `${process.env.PAYLOAD_PUBLIC_SERVER_URL}/orders/${doc.id}`,
   },
   hooks: {
@@ -34,14 +34,109 @@ export const Orders: CollectionConfig = {
       },
     },
     {
+      name: 'paymentMethod',
+      type: 'select',
+      required: true,
+      defaultValue: 'stripe',
+      options: [
+        {
+          label: 'Stripe (Card)',
+          value: 'stripe',
+        },
+        {
+          label: 'M-Pesa',
+          value: 'mpesa',
+        },
+      ],
+    },
+    {
+      name: 'paymentStatus',
+      type: 'select',
+      required: true,
+      defaultValue: 'pending',
+      options: [
+        {
+          label: 'Pending',
+          value: 'pending',
+        },
+        {
+          label: 'Paid',
+          value: 'paid',
+        },
+        {
+          label: 'Failed',
+          value: 'failed',
+        },
+        {
+          label: 'Refunded',
+          value: 'refunded',
+        },
+      ],
+    },
+    {
       name: 'stripePaymentIntentID',
       label: 'Stripe Payment Intent ID',
       type: 'text',
       admin: {
         position: 'sidebar',
+        condition: (data) => data.paymentMethod === 'stripe',
         components: {
           Field: LinkToPaymentIntent,
         },
+      },
+    },
+    {
+      name: 'mpesaRequestID',
+      label: 'M-Pesa Request ID',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        condition: (data) => data.paymentMethod === 'mpesa',
+      },
+    },
+    {
+      name: 'mpesaCheckoutRequestID',
+      label: 'M-Pesa Checkout Request ID',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        condition: (data) => data.paymentMethod === 'mpesa',
+      },
+    },
+    {
+      name: 'mpesaReceiptNumber',
+      label: 'M-Pesa Receipt Number',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        condition: (data) => data.paymentMethod === 'mpesa',
+      },
+    },
+    {
+      name: 'mpesaTransactionDate',
+      label: 'M-Pesa Transaction Date',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        condition: (data) => data.paymentMethod === 'mpesa',
+      },
+    },
+    {
+      name: 'mpesaPhoneNumber',
+      label: 'M-Pesa Phone Number',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        condition: (data) => data.paymentMethod === 'mpesa',
+      },
+    },
+    {
+      name: 'mpesaResultDesc',
+      label: 'M-Pesa Result Description',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        condition: (data) => data.paymentMethod === 'mpesa' && data.paymentStatus === 'failed',
       },
     },
     {

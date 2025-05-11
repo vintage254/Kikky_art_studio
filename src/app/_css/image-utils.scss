@@ -1,0 +1,55 @@
+/* Image Utilities for proper aspect ratio handling */
+
+.image-container {
+  position: relative;
+  width: 100%;
+  
+  &.ratio-1-1 {
+    aspect-ratio: 1 / 1;
+  }
+  
+  &.ratio-16-9 {
+    aspect-ratio: 16 / 9;
+  }
+  
+  &.ratio-4-3 {
+    aspect-ratio: 4 / 3;
+  }
+  
+  &.ratio-3-2 {
+    aspect-ratio: 3 / 2;
+  }
+}
+
+.responsive-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* maintain aspect ratio without stretching */
+}
+
+.fill-image {
+  object-fit: cover; /* cover the entire container */
+}
+
+.contain-image {
+  object-fit: contain; /* ensures the entire image is visible */
+}
+
+.position-center {
+  object-position: center;
+}
+
+/* Fixes for Next.js Image warnings */
+.next-image-wrapper {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* This ensures the aspect ratio is maintained */
+  &:not([data-fill="true"]) {
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+  }
+} 
