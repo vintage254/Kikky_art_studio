@@ -11,7 +11,8 @@ export async function Footer() {
   try {
     footer = await fetchFooter()
   } catch (error) {
-    console.log(error)
+    console.error('Error in Footer component:', error)
+    // Continue with null footer - the FooterComponent should handle this
   }
 
   const navItems = footer?.navItems || []

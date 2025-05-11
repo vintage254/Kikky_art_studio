@@ -15,7 +15,8 @@ export async function Header() {
   try {
     header = await fetchHeader()
   } catch (error) {
-    console.log(error)
+    console.error('Error in Header component:', error)
+    // Continue with null header - the HeaderComponent should handle this
   }
 
   return (

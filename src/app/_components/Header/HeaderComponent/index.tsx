@@ -12,7 +12,7 @@ import { HeaderNav } from '../Nav'
 
 import classes from './index.module.scss'
 
-const HeaderComponent = ({ header }: { header: Header }) => {
+const HeaderComponent = ({ header }: { header: Header | null }) => {
   const pathname = usePathname()
 
   return (

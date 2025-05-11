@@ -13,7 +13,7 @@ import canUseDOM from '../../../_utilities/canUseDOM'
 
 import classes from './index.module.scss'
 
-const FooterComponent = ({ footer }: { footer: Footer }) => {
+const FooterComponent = ({ footer }: { footer: Footer | null }) => {
   const pathname = usePathname()
   const [shouldHide, setShouldHide] = useState(false)
   const navItems = footer?.navItems || []
@@ -33,27 +33,33 @@ const FooterComponent = ({ footer }: { footer: Footer }) => {
               <Image src="/logo-kikky-3.png" alt="logo" width={50} height={50} />
             </Link>
 
-            <p>{footer?.copyright}</p>
+            <p>{footer?.copyright || '© ' + new Date().getFullYear() + ' All Rights Reserved'}</p>
 
             <div className={classes.socialLinks}>
-              {navItems.map(item => {
+              {navItems.map((item, i) => {
+                if (!item?.link) return null
+                
                 const icon = item?.link?.icon as Media
 
                 return (
                   <Button
-                    key={item.link.label}
+                    key={item.link.label || `social-link-${i}`}
                     el="link"
-                    href={item.link.url}
+                    href={item.link.url || '#'}
                     newTab={true}
                     className={classes.socialLinkItem}
                   >
-                    <Image
-                      src={icon?.url}
-                      alt={item.link.label}
-                      width={30}
-                      height={30}
-                      className={classes.socialIcon}
-                    />
+                    {icon?.url ? (
+                      <Image
+                        src={icon.url}
+                        alt={item.link.label || 'Social media'}
+                        width={30}
+                        height={30}
+                        className={classes.socialIcon}
+                      />
+                    ) : (
+                      <span>{item.link.label}</span>
+                    )}
                   </Button>
                 )
               })}
