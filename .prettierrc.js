@@ -1,8 +1,8 @@
 module.exports = {
-  printWidth: 100,
-  parser: 'typescript',
+  // Disable all Prettier rules for Vercel deployment
   semi: false,
-  singleQuote: true,
-  trailingComma: 'all',
-  arrowParens: 'avoid',
-}
+  singleQuote: false,
+  trailingComma: "none",
+  bracketSpacing: false,
+  printWidth: 10000,
+};

@@ -1,30 +1,30 @@
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import payload from 'payload'
-import { cookies } from 'next/headers'
 import { formatPhoneNumber, initiateSTKPush } from '../../../../payload/mpesa'
-import { Order, Product } from '../../../../payload/payload-types'
+import type { Product } from '../../../../payload/payload-types'
 
 // Define a cart item interface
 interface CartItem {
-  product: string;
-  quantity?: number;
+  product: string
+  quantity?: number
 }
 
 // Interface for order item
 interface OrderItem {
-  product: string;
-  price: number;
-  quantity: number;
+  product: string
+  price: number
+  quantity: number
 }
 
 // Interface for request body
 interface CheckoutRequestBody {
-  phoneNumber: string;
-  items: CartItem[];
+  phoneNumber: string
+  items: CartItem[]
 }
 
 // This API route handles M-Pesa checkout
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse> {
   try {
     // Get the session token from cookies
     const cookieStore = cookies()
@@ -41,9 +41,9 @@ export async function POST(req: Request) {
         headers: {
           Authorization: `JWT ${payloadToken}`,
         },
-      });
+      })
       
-      const { user } = await tokenResult.json();
+      const { user } = await tokenResult.json()
       
       if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
       
       // Process items and calculate total
       const orderItems = await Promise.all(
-        items.map(async (item) => {
+        items.map(async item => {
           const { product: productId, quantity } = item
           
           if (!quantity) {
@@ -155,7 +155,7 @@ export async function POST(req: Request) {
         
         return NextResponse.json({
           error: 'Failed to initiate M-Pesa payment',
-          details: stkPushResult.error
+          details: stkPushResult.error,
         }, { status: 400 })
       }
       
@@ -184,7 +184,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('Error in M-Pesa checkout:', error)
     return NextResponse.json({
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     }, { status: 500 })
   }
 } 

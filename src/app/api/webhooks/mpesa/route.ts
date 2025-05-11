@@ -1,8 +1,8 @@
-import payload from 'payload'
 import { NextResponse } from 'next/server'
+import payload from 'payload'
 
 // This API route handles callbacks from M-Pesa
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse> {
   try {
     // Parse the request body
     const callbackData = await req.json()
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     // Extract the Body section which contains the actual transaction details
     const { Body } = callbackData
     
-    if (!Body || !Body.stkCallback) {
+    if (!Body?.stkCallback) {
       return NextResponse.json({ error: 'Invalid callback format' }, { status: 400 })
     }
     
@@ -41,23 +41,26 @@ export async function POST(req: Request) {
           and: [
             {
               id: {
-                not_equals: null
-              }
-            }
-          ]
-        }
+                not_equals: null,
+              },
+            },
+          ],
+        },
       })
       
       // Filter orders manually 
       const matchingOrders = orders.docs.filter(order => {
         const orderData = order as any
-        return orderData._mpesaRequestID === merchantRequestID || orderData.mpesaRequestID === merchantRequestID
+        return (
+          orderData._mpesaRequestID === merchantRequestID || 
+          orderData.mpesaRequestID === merchantRequestID
+        )
       })
       
       if (matchingOrders.length === 0) {
         return NextResponse.json(
           { error: `No order found with mpesaRequestID: ${merchantRequestID}` },
-          { status: 404 }
+          { status: 404 },
         )
       }
       
@@ -75,7 +78,7 @@ export async function POST(req: Request) {
         await payload.update({
           collection: 'orders',
           id: order.id,
-          data: updateData
+          data: updateData,
         })
         
         // Log success
@@ -102,7 +105,7 @@ export async function POST(req: Request) {
           
           await payload.create({
             collection: 'payments',
-            data: paymentData
+            data: paymentData,
           })
         }
       } catch (paymentError) {
@@ -122,17 +125,20 @@ export async function POST(req: Request) {
           and: [
             {
               id: {
-                not_equals: null
-              }
-            }
-          ]
-        }
+                not_equals: null,
+              },
+            },
+          ],
+        },
       })
       
       // Filter orders manually 
       const matchingOrders = orders.docs.filter(order => {
         const orderData = order as any
-        return orderData._mpesaRequestID === merchantRequestID || orderData.mpesaRequestID === merchantRequestID
+        return (
+          orderData._mpesaRequestID === merchantRequestID || 
+          orderData.mpesaRequestID === merchantRequestID
+        )
       })
       
       if (matchingOrders.length > 0) {
@@ -148,7 +154,7 @@ export async function POST(req: Request) {
           await payload.update({
             collection: 'orders',
             id: order.id,
-            data: updateData
+            data: updateData,
           })
           
           console.log(`Updated order ${order.id} with failed payment status`)

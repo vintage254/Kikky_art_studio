@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "buildCommand": "bash ./vercel-deploy.sh",
+  "ignoreCommand": "sh -c \"! git diff --name-only $VERCEL_GIT_PREVIOUS_SHA..$VERCEL_GIT_COMMIT_SHA | grep -q '^package\\.json$'\"",
+  "outputDirectory": ".next"
+} 

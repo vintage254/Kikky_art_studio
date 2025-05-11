@@ -9,6 +9,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    forceSwcTransforms: true,
+  },
   reactStrictMode: true,
   swcMinify: true,
   images: {

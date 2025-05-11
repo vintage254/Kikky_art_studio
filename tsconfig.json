@@ -26,7 +26,8 @@
     "paths": {
       "react": ["./node_modules/@types/react"],
       "@payloadcms/db-mongodb": ["./node_modules/@payloadcms/db-mongodb"]
-    }
+    },
+    "noErrorTruncation": true
   },
   "include": [
     "**/*.ts",
