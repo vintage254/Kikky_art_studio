@@ -12,6 +12,9 @@ import classes from './index.module.scss'
 
 const Filters = ({ categories }: { categories: Category[] }) => {
   const { categoryFilters, sort, setCategoryFilters, setSort } = useFilter()
+  
+  // Ensure categories is an array
+  const safeCategories = Array.isArray(categories) ? categories : []
 
   const handleCategories = (categoryId: string) => {
     if (categoryFilters.includes(categoryId)) {
@@ -30,7 +33,7 @@ const Filters = ({ categories }: { categories: Category[] }) => {
       <div>
         <h6 className={classes.title}>Product Categories</h6>
         <div className={classes.categories}>
-          {categories.map(category => {
+          {safeCategories.map(category => {
             const isSelected = categoryFilters.includes(category.id)
 
             return (

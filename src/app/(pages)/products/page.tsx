@@ -11,11 +11,13 @@ import Filters from './Filters'
 
 import classes from './index.module.scss'
 
+export const dynamic = 'force-dynamic'
+
 const Products = async () => {
   const { isEnabled: isDraftMode } = draftMode()
 
   let page: Page | null = null
-  let categories: Category[] | null = null
+  let categories: Category[] | null = []
 
   try {
     page = await fetchDoc<Page>({
@@ -24,7 +26,7 @@ const Products = async () => {
       draft: isDraftMode,
     })
 
-    categories = await fetchDocs<Category>('categories')
+    categories = await fetchDocs<Category>('categories') || []
   } catch (error) {
     console.log(error)
   }
@@ -32,8 +34,8 @@ const Products = async () => {
   return (
     <div className={classes.container}>
       <Gutter className={classes.products}>
-        <Filters categories={categories} />
-        <Blocks blocks={page?.layout} disableTopPadding={true} />
+        <Filters categories={categories || []} />
+        <Blocks blocks={page?.layout || []} disableTopPadding={true} />
       </Gutter>
       <HR />
     </div>

@@ -12,12 +12,14 @@ const nextConfig = {
   experimental: {
     forceSwcTransforms: true,
   },
+  output: 'standalone',
   reactStrictMode: true,
   swcMinify: true,
   images: {
     domains: ['localhost', process.env.NEXT_PUBLIC_SERVER_URL]
       .filter(Boolean)
       .map(url => url.replace(/https?:\/\//, '')),
+    unoptimized: true,
   },
   // Add environment variables that should be available to the client
   env: {

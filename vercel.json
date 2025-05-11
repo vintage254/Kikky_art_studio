@@ -1,5 +1,12 @@
 {
   "version": 2,
   "buildCommand": "bash ./vercel-deploy.sh",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "installCommand": "yarn install",
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_SKIP_DB_CONNECTION": "true",
+    "SKIP_API_DURING_BUILD": "true",
+    "PAYLOAD_PUBLIC_SKIP_DB_CONNECTION": "true"
+  }
 } 

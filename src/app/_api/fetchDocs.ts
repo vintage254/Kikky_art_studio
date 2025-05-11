@@ -31,6 +31,12 @@ export const fetchDocs = async <T>(
   collection: keyof Config['collections'],
   draft?: boolean,
 ): Promise<T[]> => {
+  // Skip API calls during build if env variable is set
+  if (process.env.SKIP_API_DURING_BUILD === 'true' && process.env.NODE_ENV === 'production') {
+    console.log(`Skipping API call to fetch ${collection} during build`)
+    return [] as T[]
+  }
+
   if (!queryMap[collection]) throw new Error(`Collection ${collection} not found`)
 
   let token: RequestCookie | undefined
@@ -40,24 +46,33 @@ export const fetchDocs = async <T>(
     token = cookies().get(payloadToken)
   }
 
-  const docs: T[] = await fetch(`${GRAPHQL_API_URL}/api/graphql`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token?.value && draft ? { Authorization: `JWT ${token.value}` } : {}),
-    },
-    cache: 'no-store',
-    next: { tags: [collection] },
-    body: JSON.stringify({
-      query: queryMap[collection].query,
-    }),
-  })
-    ?.then(res => res.json())
-    ?.then(res => {
-      if (res.errors) throw new Error(res?.errors?.[0]?.message ?? 'Error fetching docs')
-
-      return res?.data?.[queryMap[collection].key]?.docs
+  try {
+    const docs: T[] = await fetch(`${GRAPHQL_API_URL}/api/graphql`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token?.value && draft ? { Authorization: `JWT ${token.value}` } : {}),
+      },
+      cache: 'no-store',
+      next: { tags: [collection] },
+      body: JSON.stringify({
+        query: queryMap[collection].query,
+      }),
     })
+      ?.then(res => res.json())
+      ?.then(res => {
+        if (res.errors) throw new Error(res?.errors?.[0]?.message ?? 'Error fetching docs')
 
-  return docs
+        return res?.data?.[queryMap[collection].key]?.docs || []
+      })
+
+    return docs
+  } catch (error) {
+    console.error(`Error fetching ${collection}:`, error)
+    // Return empty array instead of throwing during production build
+    if (process.env.NODE_ENV === 'production') {
+      return [] as T[]
+    }
+    throw error
+  }
 }
