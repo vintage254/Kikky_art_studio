@@ -1,12 +1,27 @@
 {
   "version": 2,
-  "buildCommand": "bash ./vercel-deploy.sh",
+  "buildCommand": "yarn vercel-build",
   "outputDirectory": ".next",
-  "installCommand": "yarn install",
   "framework": "nextjs",
   "env": {
     "NEXT_PUBLIC_SKIP_DB_CONNECTION": "true",
-    "SKIP_API_DURING_BUILD": "true",
-    "PAYLOAD_PUBLIC_SKIP_DB_CONNECTION": "true"
-  }
+    "PAYLOAD_PUBLIC_SKIP_DB_CONNECTION": "true",
+    "NEXT_PUBLIC_SERVER_URL": "https://kikky-art-studio.vercel.app",
+    "PAYLOAD_PUBLIC_SERVER_URL": "https://kikky-art-studio.vercel.app"
+  },
+  "headers": [
+    {
+      "source": "/api/webhooks/mpesa",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/admin", "destination": "/admin" },
+    { "source": "/admin/(.*)", "destination": "/admin" }
+  ]
 } 

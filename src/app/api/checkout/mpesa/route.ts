@@ -23,6 +23,22 @@ interface CheckoutRequestBody {
   items: CartItem[]
 }
 
+// Helper to get the server URL based on environment
+const getServerURL = () => {
+  // For Vercel, use the VERCEL_URL environment variable if available
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  
+  // For local development or if NEXT_PUBLIC_SERVER_URL is set
+  if (process.env.NEXT_PUBLIC_SERVER_URL) {
+    return process.env.NEXT_PUBLIC_SERVER_URL;
+  }
+  
+  // Fallback - this should not happen in production
+  return 'https://kikky-art-studio.vercel.app';
+};
+
 // This API route handles M-Pesa checkout
 export async function POST(req: Request): Promise<NextResponse> {
   try {
@@ -36,8 +52,12 @@ export async function POST(req: Request): Promise<NextResponse> {
     
     // Get user from token
     try {
+      // Determine the server URL
+      const serverURL = getServerURL();
+      console.log(`Using server URL for authentication: ${serverURL}`);
+      
       // Validate token using raw JWT method
-      const tokenResult = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/me`, {
+      const tokenResult = await fetch(`${serverURL}/api/users/me`, {
         headers: {
           Authorization: `JWT ${payloadToken}`,
         },

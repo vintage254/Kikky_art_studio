@@ -76,6 +76,22 @@ interface STKPushResult {
   error?: any;
 }
 
+// Determine the correct callback URL based on environment
+const getCallbackURL = () => {
+  // For Vercel, use the VERCEL_URL environment variable if available
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}/api/webhooks/mpesa`;
+  }
+  
+  // For local development or if PAYLOAD_PUBLIC_SERVER_URL is set
+  if (process.env.PAYLOAD_PUBLIC_SERVER_URL) {
+    return `${process.env.PAYLOAD_PUBLIC_SERVER_URL}/api/webhooks/mpesa`;
+  }
+  
+  // Fallback - this should not happen in production
+  return 'https://kikky-art-studio.vercel.app/api/webhooks/mpesa';
+};
+
 // Initiate STK Push
 export const initiateSTKPush = async ({
   phoneNumber,
@@ -94,6 +110,11 @@ export const initiateSTKPush = async ({
 
     // Format phone number
     const formattedPhone = formatPhoneNumber(phoneNumber);
+    
+    // Get the appropriate callback URL
+    const callbackURL = getCallbackURL();
+    
+    console.log(`Using M-Pesa callback URL: ${callbackURL}`);
 
     // Create STK Push request
     const response = await axios.post<MpesaSTKPushResponse>(
@@ -107,7 +128,7 @@ export const initiateSTKPush = async ({
         PartyA: formattedPhone,
         PartyB: MPESA_CONSTANTS.SHORTCODE,
         PhoneNumber: formattedPhone,
-        CallBackURL: `${process.env.PAYLOAD_PUBLIC_SERVER_URL}/api/webhooks/mpesa`,
+        CallBackURL: callbackURL,
         AccountReference: accountReference,
         TransactionDesc: transactionDesc,
       },
