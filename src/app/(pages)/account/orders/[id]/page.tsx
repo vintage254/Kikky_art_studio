@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import { Order } from '../../../../../payload/payload-types'
+import type { Order } from '../../../../../payload/payload-types'
 import { HR } from '../../../../_components/HR'
 import { Media } from '../../../../_components/Media'
 import { Price } from '../../../../_components/Price'
@@ -51,7 +51,34 @@ export default async function Order({ params: { id } }) {
       </h5>
       <div className={classes.itemMeta}>
         <p>{`ID: ${order.id}`}</p>
-        <p>{`Payment Intent: ${order.stripePaymentIntentID}`}</p>
+        {order.paymentMethod && (
+          <p>
+            {`Payment Method: `}
+            {order.paymentMethod === 'stripe' && 'Credit/Debit Card'}
+            {order.paymentMethod === 'mpesa' && 'M-Pesa'}
+            {order.paymentMethod === 'cash_on_delivery' && 'Cash on Delivery'}
+          </p>
+        )}
+        {order.paymentStatus && (
+          <p>
+            {`Payment Status: `}
+            <span className={`${classes.status} ${classes[order.paymentStatus]}`}>
+              {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+            </span>
+          </p>
+        )}
+        {order.paymentMethod === 'stripe' && order.stripePaymentIntentID && (
+          <p>{`Payment Intent: ${order.stripePaymentIntentID}`}</p>
+        )}
+        {order.paymentMethod === 'mpesa' && order.mpesaReceiptNumber && (
+          <p>{`M-Pesa Receipt: ${order.mpesaReceiptNumber}`}</p>
+        )}
+        {order.paymentMethod === 'cash_on_delivery' && order.deliveryNotes && (
+          <div className={classes.deliveryNotes}>
+            <p className={classes.deliveryNotesLabel}>Delivery Notes:</p>
+            <p className={classes.deliveryNotesContent}>{order.deliveryNotes}</p>
+          </div>
+        )}
         <p>{`Ordered On: ${formatDateTime(order.createdAt)}`}</p>
         <p className={classes.total}>
           {'Total: '}

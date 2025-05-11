@@ -47,6 +47,10 @@ export const Orders: CollectionConfig = {
           label: 'M-Pesa',
           value: 'mpesa',
         },
+        {
+          label: 'Cash on Delivery',
+          value: 'cash_on_delivery',
+        },
       ],
     },
     {
@@ -137,6 +141,15 @@ export const Orders: CollectionConfig = {
       admin: {
         position: 'sidebar',
         condition: (data) => data.paymentMethod === 'mpesa' && data.paymentStatus === 'failed',
+      },
+    },
+    {
+      name: 'deliveryNotes',
+      label: 'Delivery Notes',
+      type: 'textarea',
+      admin: {
+        position: 'sidebar',
+        condition: (data) => data.paymentMethod === 'cash_on_delivery',
       },
     },
     {

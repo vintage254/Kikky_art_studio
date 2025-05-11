@@ -27,6 +27,10 @@ export const Payments: CollectionConfig = {
           label: 'Stripe',
           value: 'stripe',
         },
+        {
+          label: 'Cash on Delivery',
+          value: 'cash_on_delivery',
+        },
       ],
     },
     {

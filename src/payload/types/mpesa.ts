@@ -1,7 +1,7 @@
 import { Order, User } from '../payload-types';
 
 // Payment method types
-export type PaymentMethod = 'stripe' | 'mpesa';
+export type PaymentMethod = 'stripe' | 'mpesa' | 'cash_on_delivery';
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
 
 // M-Pesa specific fields to add to Order

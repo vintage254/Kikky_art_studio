@@ -423,7 +423,16 @@ export interface Product {
 export interface Order {
   id: string;
   orderedBy?: (string | null) | User;
+  paymentMethod?: 'stripe' | 'mpesa' | 'cash_on_delivery' | null;
+  paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded' | null;
   stripePaymentIntentID?: string | null;
+  mpesaRequestID?: string | null;
+  mpesaCheckoutRequestID?: string | null;
+  mpesaReceiptNumber?: string | null;
+  mpesaTransactionDate?: string | null;
+  mpesaPhoneNumber?: string | null;
+  mpesaResultDesc?: string | null;
+  deliveryNotes?: string | null;
   total: number;
   items?:
     | {

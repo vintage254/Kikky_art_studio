@@ -13,6 +13,7 @@ export const OrderConfirmationPage: React.FC<{}> = () => {
   const searchParams = useSearchParams()
   const orderID = searchParams.get('order_id')
   const error = searchParams.get('error')
+  const paymentMethod = searchParams.get('payment_method')
 
   const { clearCart } = useCart()
 
@@ -40,9 +41,19 @@ export const OrderConfirmationPage: React.FC<{}> = () => {
       ) : (
         <Fragment>
           <h1>Thank you for your order!</h1>
-          <p>
-            {`Your order has been confirmed. You will receive an email confirmation shortly. Your order ID is ${orderID}.`}
-          </p>
+          {paymentMethod === 'cash_on_delivery' ? (
+            <div className={classes.cashOnDeliveryInfo}>
+              <Message success="Your order has been placed successfully!" />
+              <p>
+                {`Your order (ID: ${orderID}) has been confirmed. You will pay upon delivery.`}
+              </p>
+              <p>You will receive an email confirmation shortly.</p>
+            </div>
+          ) : (
+            <p>
+              {`Your order has been confirmed. You will receive an email confirmation shortly. Your order ID is ${orderID}.`}
+            </p>
+          )}
           <div className={classes.actions}>
             <Button href={`/account/orders/${orderID}`} label="View order" appearance="primary" />
             <Button

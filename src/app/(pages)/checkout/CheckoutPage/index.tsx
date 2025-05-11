@@ -18,6 +18,7 @@ import cssVariables from '../../../cssVariables'
 import { CheckoutForm } from '../CheckoutForm'
 import { MpesaCheckoutForm } from '../MpesaCheckoutForm'
 import { CheckoutItem } from '../CheckoutItem'
+import { CashOnDeliveryForm } from '../CashOnDeliveryForm'
 
 import classes from './index.module.scss'
 
@@ -31,7 +32,7 @@ export const CheckoutPage: React.FC<{
   const router = useRouter()
   const [error, setError] = useState('')
   const [clientSecret, setClientSecret] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'mpesa'>('stripe')
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'mpesa' | 'cash_on_delivery'>('stripe')
   const { theme } = useTheme()
   const { cart, cartIsEmpty, cartTotal } = useCart()
 
@@ -162,12 +163,19 @@ export const CheckoutPage: React.FC<{
               <span>M-Pesa</span>
               <small>Mobile money for Kenyan customers</small>
             </button>
+            <button
+              className={`${classes.paymentMethod} ${paymentMethod === 'cash_on_delivery' ? classes.selected : ''}`}
+              onClick={() => setPaymentMethod('cash_on_delivery')}
+            >
+              <span>Cash on Delivery</span>
+              <small>Pay when your order is delivered</small>
+            </button>
           </div>
         </div>
 
         {error && <Message error={error} />}
 
-        {paymentMethod === 'stripe' && clientSecret ? (
+        {clientSecret && paymentMethod === 'stripe' ? (
           <Elements
             options={{
               clientSecret,
@@ -194,6 +202,8 @@ export const CheckoutPage: React.FC<{
           </Elements>
         ) : paymentMethod === 'mpesa' ? (
           <MpesaCheckoutForm />
+        ) : paymentMethod === 'cash_on_delivery' ? (
+          <CashOnDeliveryForm />
         ) : (
           <div className={classes.loading}>
             <LoadingShimmer />

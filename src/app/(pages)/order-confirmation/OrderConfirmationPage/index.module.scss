@@ -1,9 +1,16 @@
 @import '../../../_css/common';
 
 .actions {
+  margin-top: var(--base);
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 30px;
   gap: calc(var(--base) / 2);
+}
+
+.cashOnDeliveryInfo {
+  margin-bottom: var(--base);
+  
+  p {
+    margin: calc(var(--base) / 2) 0;
+  }
 }
