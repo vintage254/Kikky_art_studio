@@ -1,90 +1,77 @@
-import dotenv from 'dotenv'
-import next from 'next'
-import nextBuild from 'next/dist/build'
+import express from 'express'
 import path from 'path'
+import payload from 'payload'
+import { config as dotenvConfig } from 'dotenv'
 
-dotenv.config({
-  path: path.resolve(__dirname, '../.env'),
+// Load environment variables
+dotenvConfig()
+
+// Create Express app
+const app = express()
+const PORT = parseInt(process.env.PORT || '3000', 10)
+
+// Health check endpoint for Render
+app.get('/health', (_, res) => {
+  res.status(200).send('OK')
 })
 
-import express from 'express'
-import payload from 'payload'
+// Serve static files from public directory
+app.use(express.static(path.resolve(__dirname, '../public')))
 
-import { seed } from './payload/seed'
+// Serve media files
+app.use('/media', express.static(path.resolve(__dirname, '../media')))
 
-const app = express()
-const PORT = process.env.PORT || 3000
+// Track consecutive database errors
+let consecutiveDbErrors = 0
+const MAX_DB_ERRORS = 5
 
-// Track consecutive database errors to determine if we need a full restart
-let consecutiveDbErrors = 0;
-const MAX_DB_ERRORS = 5;
-
-// Add global error handler for database connection issues
+// Handle uncaught exceptions to prevent crashes due to database disconnections
 process.on('uncaughtException', (error: any) => {
-  // Convert error to string to handle different error formats
-  const errorString = String(error);
+  const errorString = String(error)
   
-  // Check for various forms of database termination messages
+  // Check for database termination messages
   if (
     errorString.includes('db_termination') || 
     errorString.includes('Connection terminated') ||
     errorString.includes(':shutdown') ||
-    errorString.includes('{:shutdown') ||  // Added to catch Erlang-style errors
     (error.code === 'XX000' && error.severity === 'FATAL')
   ) {
-    console.log('==== DATABASE CONNECTION TERMINATED ====');
-    console.log('Database connection was terminated by Supabase. This is expected behavior with serverless databases.');
-    console.log('The application will continue running and reconnect automatically on the next database operation.');
+    console.log('==== DATABASE CONNECTION TERMINATED ====')
+    console.log('Database connection was terminated. This is expected behavior with serverless databases.')
     
     // Keep track of consecutive errors for potential recovery
-    consecutiveDbErrors++;
+    consecutiveDbErrors++
     
     if (consecutiveDbErrors >= MAX_DB_ERRORS) {
-      console.log(`Detected ${consecutiveDbErrors} consecutive database errors. Attempting recovery...`);
-      
-      // Force a delay before next database operation to allow Supabase to recover
+      console.log(`Detected ${consecutiveDbErrors} consecutive database errors. Attempting recovery...`)
       setTimeout(() => {
-        console.log('Recovery delay completed. Operations will resume on next request.');
-        // Reset counter after recovery attempt
-        consecutiveDbErrors = 0;
-      }, 5000);
+        console.log('Recovery delay completed. Operations will resume on next request.')
+        consecutiveDbErrors = 0
+      }, 5000)
     }
     
-    return; // Prevent the process from exiting
+    return // Prevent the process from exiting
   }
   
   // For other uncaught exceptions, log and potentially exit
-  console.error('Uncaught Exception:', error);
+  console.error('Uncaught Exception:', error)
 })
 
-const start = async (): Promise<void> => {
-  // Skip database initialization during Vercel build
-  if (process.env.NEXT_BUILD && process.env.NEXT_PUBLIC_SKIP_DB_CONNECTION === 'true') {
-    payload.logger.info('Skipping database connection during build...')
-    
-    if (process.env.NEXT_BUILD) {
-      app.listen(PORT, async () => {
-        payload.logger.info(`Next.js is now building...`)
-        // @ts-expect-error
-        await nextBuild(path.join(__dirname, '../'))
-        process.exit()
-      })
-      return
-    }
-  } else {
-    // Normal initialization with database connection
+// Initialize Payload
+const start = async () => {
+  // Initialize Payload
     await payload.init({
       secret: process.env.PAYLOAD_SECRET || '',
       express: app,
-      onInit: () => {
+    onInit: async () => {
         payload.logger.info(`Payload Admin URL: ${payload.getAdminURL()}`)
         // Reset error counter on successful initialization
-        consecutiveDbErrors = 0;
+      consecutiveDbErrors = 0
       },
     })
 
-    // Setup a database keep-alive to prevent Supabase from suspending
-    const KEEP_ALIVE_INTERVAL = 4 * 60 * 1000; // 4 minutes (just under Supabase's 5-minute suspension)
+  // Setup a database keep-alive to prevent database from suspending
+  const KEEP_ALIVE_INTERVAL = 4 * 60 * 1000 // 4 minutes
     setInterval(async () => {
       try {
         // Use a simple collection count operation to ping the database
@@ -92,61 +79,24 @@ const start = async (): Promise<void> => {
           collection: 'users',
           limit: 1,
           depth: 0 // Don't populate relations to keep it lightweight
-        });
+      })
         
         if (process.env.NODE_ENV !== 'production') {
-          payload.logger.info('Database keep-alive ping successful');
-        }
-      } catch (error) {
-        payload.logger.error('Database keep-alive ping failed:', error);
+        payload.logger.info('Database keep-alive ping successful')
       }
-    }, KEEP_ALIVE_INTERVAL);
-  }
-
-  // Add static file service for assets
-  app.use('/assets', express.static(path.resolve(__dirname, '../public')))
-
-  // Add a simple health check endpoint
-  app.get('/api/health', async (req, res) => {
-    try {
-      // Reset counter on successful health check
-      consecutiveDbErrors = 0;
-      res.status(200).json({ status: 'ok', dbConnected: true });
     } catch (error) {
-      res.status(500).json({ status: 'error', message: String(error) });
+      payload.logger.error('Database keep-alive ping failed:', error)
     }
-  });
+  }, KEEP_ALIVE_INTERVAL)
 
-  if (process.env.PAYLOAD_SEED === 'true') {
-    await seed(payload)
-    process.exit()
-  }
-
-  if (process.env.NEXT_BUILD) {
-    app.listen(PORT, async () => {
-      payload.logger.info(`Next.js is now building...`)
-      // @ts-expect-error
-      await nextBuild(path.join(__dirname, '../'))
-      process.exit()
-    })
-
-    return
-  }
-
-  const nextApp = next({
-    dev: process.env.NODE_ENV !== 'production',
+  // Redirect root to Admin panel
+  app.get('/', (_, res) => {
+    res.redirect('/admin')
   })
 
-  const nextHandler = nextApp.getRequestHandler()
-
-  app.use((req, res) => nextHandler(req, res))
-
-  nextApp.prepare().then(() => {
-    payload.logger.info('Starting Next.js...')
-
-    app.listen(PORT, async () => {
-      payload.logger.info(`Next.js App URL: ${process.env.PAYLOAD_PUBLIC_SERVER_URL}`)
-    })
+  // Start server
+  app.listen(PORT, '0.0.0.0', () => {
+    payload.logger.info(`Server running on http://0.0.0.0:${PORT}`)
   })
 }
 
