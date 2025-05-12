@@ -42,11 +42,11 @@ export const CheckoutPage: React.FC<{
 
   useEffect(() => {
     const getClientSecret = async () => {
-      try {
+        try {
         if (user && !cartIsEmpty) {
           const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/create-payment-intent`, {
-            method: 'POST',
-            credentials: 'include',
+              method: 'POST',
+              credentials: 'include',
           })
 
           const res = await req.json()
@@ -59,11 +59,11 @@ export const CheckoutPage: React.FC<{
           if (res.client_secret) {
             setClientSecret(res.client_secret)
           }
+          }
+        } catch (e) {
+          setError('Something went wrong.')
         }
-      } catch (e) {
-        setError('Something went wrong.')
       }
-    }
 
     if (paymentMethod === 'stripe') {
       getClientSecret()
@@ -91,41 +91,41 @@ export const CheckoutPage: React.FC<{
 
   return (
     <div className={classes.container}>
-      <div className={classes.items}>
-        <div className={classes.header}>
+        <div className={classes.items}>
+          <div className={classes.header}>
           <p>Items in your cart</p>
-        </div>
-        <ul>
-          {cart?.items?.map((item, index) => {
-            if (typeof item.product === 'object') {
-              const {
+          </div>
+          <ul>
+            {cart?.items?.map((item, index) => {
+              if (typeof item.product === 'object') {
+                const {
                 product,
                 product: {
                   title,
                   meta: { image: metaImage } = {},
                 } = {},
-                quantity,
-              } = item
+                  quantity,
+                } = item
 
               const isLast = index === (cart?.items?.length || 0) - 1
 
               const metaImageURL = metaImage && typeof metaImage === 'object' && metaImage.url
 
-              return (
+                return (
                 <React.Fragment key={index}>
-                  <CheckoutItem
-                    product={product}
-                    title={title}
-                    metaImage={metaImage}
-                    quantity={quantity}
-                    index={index}
-                  />
+                    <CheckoutItem
+                      product={product}
+                      title={title}
+                      metaImage={metaImage}
+                      quantity={quantity}
+                      index={index}
+                    />
                   {!isLast && <HR />}
                 </React.Fragment>
-              )
-            }
-            return null
-          })}
+                )
+              }
+              return null
+            })}
         </ul>
 
         <div className={classes.summary}>
@@ -140,8 +140,8 @@ export const CheckoutPage: React.FC<{
           <HR />
           <div className={classes.row}>
             <h5>Total</h5>
-            <p>{cartTotal.formatted}</p>
-          </div>
+              <p>{cartTotal.formatted}</p>
+            </div>
         </div>
       </div>
 
@@ -170,7 +170,7 @@ export const CheckoutPage: React.FC<{
               <span>Cash on Delivery</span>
               <small>Pay when your order is delivered</small>
             </button>
-          </div>
+        </div>
         </div>
 
         {error && <Message error={error} />}

@@ -47,6 +47,10 @@ export default buildConfig({
   admin: {
     user: Users.slug,
     bundler: webpackBundler(), // bundler-config
+    meta: {
+      favicon: '/favicon.ico',
+      titleSuffix: '- E-commerce Admin'
+    },
     components: {
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below and the import `BeforeLogin` statement on line 15.
@@ -115,7 +119,7 @@ export default buildConfig({
         },
         // Disable transactions to prevent write conflicts
         transactionOptions: false,
-      }),
+  }),
   // database-adapter-config-end
   serverURL: process.env.PAYLOAD_PUBLIC_SERVER_URL,
   collections: [Pages, Products, Orders, Media, Categories, Users, Payments],

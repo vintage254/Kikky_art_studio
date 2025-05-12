@@ -175,17 +175,17 @@ export const CartProvider = props => {
             try {
               attempts++;
               
-              const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/${user.id}`, {
-                credentials: 'include',
-                method: 'PATCH',
+          const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/${user.id}`, {
+            credentials: 'include',
+            method: 'PATCH',
                 body: JSON.stringify(simplifiedCart),
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-              })
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
 
-              if (req.ok) {
-                localStorage.setItem('cart', '[]')
+          if (req.ok) {
+            localStorage.setItem('cart', '[]')
                 success = true;
               } else {
                 // Get specific error for debugging
