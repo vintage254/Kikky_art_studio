@@ -26,27 +26,27 @@ export async function fetchSettings(): Promise<Settings> {
 
   try {
     console.log(`Fetching settings from ${GRAPHQL_API_URL}/api/graphql`)
-    
-    const settings = await fetch(`${GRAPHQL_API_URL}/api/graphql`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store',
-      body: JSON.stringify({
-        query: SETTINGS_QUERY,
-      }),
-    })
-      ?.then(res => {
-        if (!res.ok) throw new Error(`Error fetching settings: ${res.status}`)
-        return res.json()
-      })
-      ?.then(res => {
-        if (res?.errors) throw new Error(res?.errors[0]?.message || 'Error fetching settings')
-        return res.data?.Settings || DEFAULT_SETTINGS
-      })
 
-    return settings
+  const settings = await fetch(`${GRAPHQL_API_URL}/api/graphql`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    cache: 'no-store',
+    body: JSON.stringify({
+      query: SETTINGS_QUERY,
+    }),
+  })
+    ?.then(res => {
+        if (!res.ok) throw new Error(`Error fetching settings: ${res.status}`)
+      return res.json()
+    })
+    ?.then(res => {
+      if (res?.errors) throw new Error(res?.errors[0]?.message || 'Error fetching settings')
+        return res.data?.Settings || DEFAULT_SETTINGS
+    })
+
+  return settings
   } catch (error) {
     console.error('Error fetching settings:', error)
     return DEFAULT_SETTINGS
@@ -62,27 +62,27 @@ export async function fetchHeader(): Promise<Header> {
 
   try {
     console.log(`Fetching header from ${GRAPHQL_API_URL}/api/graphql`)
-    
-    const header = await fetch(`${GRAPHQL_API_URL}/api/graphql`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store',
-      body: JSON.stringify({
-        query: HEADER_QUERY,
-      }),
-    })
-      ?.then(res => {
-        if (!res.ok) throw new Error(`Error fetching header: ${res.status}`)
-        return res.json()
-      })
-      ?.then(res => {
-        if (res?.errors) throw new Error(res?.errors[0]?.message || 'Error fetching header')
-        return res.data?.Header || DEFAULT_HEADER
-      })
 
-    return header
+  const header = await fetch(`${GRAPHQL_API_URL}/api/graphql`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    cache: 'no-store',
+    body: JSON.stringify({
+      query: HEADER_QUERY,
+    }),
+  })
+    ?.then(res => {
+        if (!res.ok) throw new Error(`Error fetching header: ${res.status}`)
+      return res.json()
+    })
+    ?.then(res => {
+      if (res?.errors) throw new Error(res?.errors[0]?.message || 'Error fetching header')
+        return res.data?.Header || DEFAULT_HEADER
+    })
+
+  return header
   } catch (error) {
     console.error('Error fetching header:', error)
     return DEFAULT_HEADER
@@ -98,27 +98,27 @@ export async function fetchFooter(): Promise<Footer> {
 
   try {
     console.log(`Fetching footer from ${GRAPHQL_API_URL}/api/graphql`)
-    
-    const footer = await fetch(`${GRAPHQL_API_URL}/api/graphql`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store',
-      body: JSON.stringify({
-        query: FOOTER_QUERY,
-      }),
-    })
-      .then(res => {
-        if (!res.ok) throw new Error(`Error fetching footer: ${res.status}`)
-        return res.json()
-      })
-      ?.then(res => {
-        if (res?.errors) throw new Error(res?.errors[0]?.message || 'Error fetching footer')
-        return res.data?.Footer || DEFAULT_FOOTER
-      })
 
-    return footer
+  const footer = await fetch(`${GRAPHQL_API_URL}/api/graphql`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+      cache: 'no-store',
+    body: JSON.stringify({
+      query: FOOTER_QUERY,
+    }),
+  })
+    .then(res => {
+        if (!res.ok) throw new Error(`Error fetching footer: ${res.status}`)
+      return res.json()
+    })
+    ?.then(res => {
+      if (res?.errors) throw new Error(res?.errors[0]?.message || 'Error fetching footer')
+        return res.data?.Footer || DEFAULT_FOOTER
+    })
+
+  return footer
   } catch (error) {
     console.error('Error fetching footer:', error)
     return DEFAULT_FOOTER
@@ -131,23 +131,23 @@ export const fetchGlobals = async (): Promise<{
   footer: Footer
 }> => {
   try {
-    // initiate requests in parallel, then wait for them to resolve
-    // this will eagerly start to the fetch requests at the same time
-    // see https://nextjs.org/docs/app/building-your-application/data-fetching/fetching
-    const settingsData = fetchSettings()
-    const headerData = fetchHeader()
-    const footerData = fetchFooter()
+  // initiate requests in parallel, then wait for them to resolve
+  // this will eagerly start to the fetch requests at the same time
+  // see https://nextjs.org/docs/app/building-your-application/data-fetching/fetching
+  const settingsData = fetchSettings()
+  const headerData = fetchHeader()
+  const footerData = fetchFooter()
 
-    const [settings, header, footer]: [Settings, Header, Footer] = await Promise.all([
-      await settingsData,
-      await headerData,
-      await footerData,
-    ])
+  const [settings, header, footer]: [Settings, Header, Footer] = await Promise.all([
+    await settingsData,
+    await headerData,
+    await footerData,
+  ])
 
-    return {
-      settings,
-      header,
-      footer,
+  return {
+    settings,
+    header,
+    footer,
     }
   } catch (error) {
     console.error('Error fetching globals:', error)

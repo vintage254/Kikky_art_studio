@@ -21,6 +21,7 @@ import Users from './collections/Users'
 import { Payments } from './collections/Payments'
 import BeforeDashboard from './components/BeforeDashboard'
 import BeforeLogin from './components/BeforeLogin'
+import { Logo, Icon } from './components/CustomLogo'
 import { createPaymentIntent } from './endpoints/create-payment-intent'
 import { customersProxy } from './endpoints/customers'
 import { productsProxy } from './endpoints/products'
@@ -48,8 +49,8 @@ export default buildConfig({
     user: Users.slug,
     bundler: webpackBundler(), // bundler-config
     meta: {
-      favicon: '/favicon.ico',
-      titleSuffix: '- E-commerce Admin'
+      favicon: '/logo-kikky-4.png',
+      titleSuffix: '- Kikky Art Studio'
     },
     components: {
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
@@ -58,6 +59,10 @@ export default buildConfig({
       // The `BeforeDashboard` component renders the 'welcome' block that you see after logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below and the import `BeforeDashboard` statement on line 15.
       beforeDashboard: [BeforeDashboard],
+      graphics: {
+        Logo,
+        Icon,
+      },
     },
     webpack: config => {
       return {
