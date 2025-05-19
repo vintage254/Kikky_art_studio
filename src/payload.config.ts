@@ -10,10 +10,13 @@ import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
+import { Products } from './collections/Products'
+import { Orders } from './collections/Orders'
 import { Users } from './collections/Users'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
 import { plugins } from './plugins'
+import { paymentWebhooks } from './endpoints'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 
@@ -62,10 +65,27 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
+      max: parseInt(process.env.DATABASE_POOL_MAX || '20'),
+      idleTimeoutMillis: parseInt(process.env.DATABASE_IDLE_TIMEOUT_MS || '20000'),
+      connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection not established
+      allowExitOnIdle: false, // Don't allow idle clients to exit during long-running operations
+      // Add additional timeout settings
+      ...(process.env.DATABASE_IDLE_IN_TRANSACTION_TIMEOUT_MS ? {
+        idle_in_transaction_session_timeout: parseInt(process.env.DATABASE_IDLE_IN_TRANSACTION_TIMEOUT_MS)
+      } : {}),
+      ...(process.env.DATABASE_QUERY_TIMEOUT_MS ? {
+        query_timeout: parseInt(process.env.DATABASE_QUERY_TIMEOUT_MS)
+      } : {})
+    },
+    onConnect: async (client) => {
+      // Optional: Configure some client settings
+      // For example, set a statement timeout to avoid long-running queries
+      await client.query('SET statement_timeout = 10000'); // 10 second query timeout
     },
   }),
-  collections: [Pages, Posts, Media, Categories, Users],
+  collections: [Pages, Posts, Products, Orders, Media, Categories, Users],
   cors: [getServerSideURL()].filter(Boolean),
+  endpoints: [...paymentWebhooks],
   globals: [Header, Footer],
   plugins: [
     ...plugins,

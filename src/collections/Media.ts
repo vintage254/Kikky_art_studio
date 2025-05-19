@@ -26,7 +26,7 @@ export const Media: CollectionConfig = {
     {
       name: 'alt',
       type: 'text',
-      //required: true,
+      required: false,
     },
     {
       name: 'caption',
@@ -41,39 +41,54 @@ export const Media: CollectionConfig = {
   upload: {
     // Upload to the public/media directory in Next.js making them publicly accessible even outside of Payload
     staticDir: path.resolve(dirname, '../../public/media'),
+    staticURL: '/media',
     adminThumbnail: 'thumbnail',
-    focalPoint: true,
+    mimeTypes: ['image/*', 'video/*'],
+    focalPoint: {
+      enabled: true,
+    },
     imageSizes: [
       {
         name: 'thumbnail',
         width: 300,
+        height: undefined,
+        position: 'centre',
       },
       {
         name: 'square',
         width: 500,
         height: 500,
+        position: 'centre',
       },
       {
         name: 'small',
         width: 600,
+        height: undefined,
+        position: 'centre',
       },
       {
         name: 'medium',
         width: 900,
+        height: undefined,
+        position: 'centre',
       },
       {
         name: 'large',
         width: 1400,
+        height: undefined,
+        position: 'centre',
       },
       {
         name: 'xlarge',
         width: 1920,
+        height: undefined,
+        position: 'centre',
       },
       {
         name: 'og',
         width: 1200,
         height: 630,
-        crop: 'center',
+        position: 'centre',
       },
     ],
   },

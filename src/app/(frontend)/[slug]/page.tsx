@@ -13,6 +13,9 @@ import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 
+import { Gutter } from '@/components/ui/Gutter'
+import classes from './index.module.scss'
+
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
   const pages = await payload.find({
@@ -64,17 +67,98 @@ export default async function Page({ params: paramsPromise }: Args) {
   }
 
   const { hero, layout } = page
+  
+  // Fetch data if this is the home page
+  let categories = null
+  let featuredProducts = null
+  let aboutPage = null
+
+  if (slug === 'home') {
+    const payload = await getPayload({ config: configPromise })
+    
+    // Fetch categories
+    try {
+      const categoriesResult = await payload.find({
+        collection: 'categories',
+        limit: 10,
+      })
+      categories = categoriesResult.docs
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
+
+    // Fetch featured products
+    try {
+      const productsResult = await payload.find({
+        collection: 'products',
+        limit: 6,
+        where: {
+          isFeatured: {
+            equals: true,
+          },
+          isActive: {
+            equals: true,
+          },
+        },
+      })
+      featuredProducts = productsResult.docs
+    } catch (error) {
+      console.error('Error fetching featured products:', error)
+    }
+
+    // Fetch about page
+    try {
+      const aboutPageResult = await payload.find({
+        collection: 'pages',
+        limit: 1,
+        where: {
+          slug: {
+            equals: 'about',
+          },
+        },
+      })
+      
+      if (aboutPageResult.docs && aboutPageResult.docs.length > 0) {
+        const aboutPageData = aboutPageResult.docs[0]
+        if (aboutPageData) {
+          aboutPage = {
+            title: aboutPageData.title || '',
+            slug: aboutPageData.slug || '',
+            description: aboutPageData.meta?.description || '',
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching about page:', error)
+    }
+  }
 
   return (
-    <article className="pt-16 pb-24">
-      <PageClient />
+    <article className="pt-20 pb-24">
       {/* Allows redirects for valid pages too */}
       <PayloadRedirects disableNotFound url={url} />
 
       {draft && <LivePreviewListener />}
 
-      <RenderHero {...hero} />
-      <RenderBlocks blocks={layout} />
+      {slug === 'home' ? (
+        <section>
+          <RenderHero {...hero} />
+          <Gutter className={classes.home}>
+            {/* Pass data to the client component for the homepage */}
+            <PageClient 
+              categories={categories} 
+              featuredProducts={featuredProducts}
+              aboutPage={aboutPage}
+              callToActionBlock={layout?.find(block => block.blockType === 'cta')}
+            />
+          </Gutter>
+        </section>
+      ) : (
+        <>
+          <RenderHero {...hero} />
+          <RenderBlocks blocks={layout} />
+        </>
+      )}
     </article>
   )
 }

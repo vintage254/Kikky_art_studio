@@ -15,10 +15,19 @@ export const PostHero: React.FC<{
     populatedAuthors && populatedAuthors.length > 0 && formatAuthors(populatedAuthors) !== ''
 
   return (
-    <div className="relative -mt-[10.4rem] flex items-end">
-      <div className="container z-10 relative lg:grid lg:grid-cols-[1fr_48rem_1fr] text-white pb-8">
-        <div className="col-start-1 col-span-1 md:col-start-2 md:col-span-2">
-          <div className="uppercase text-sm mb-6">
+    <div className="relative pt-24 min-h-[80vh] flex items-center">
+      {/* Hero image positioned absolute to fill the container */}
+      {heroImage && typeof heroImage !== 'string' && (
+        <div className="absolute inset-0 w-full h-full">
+          <Media fill priority imgClassName="object-cover" resource={heroImage} />
+          {/* Gradient overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+        </div>
+      )}
+      
+      <div className="container z-10 relative text-white">
+        <div className="max-w-2xl">
+          <div className="uppercase text-sm mb-4 opacity-90">
             {categories?.map((category, index) => {
               if (typeof category === 'object' && category !== null) {
                 const { title: categoryTitle } = category
@@ -38,35 +47,27 @@ export const PostHero: React.FC<{
             })}
           </div>
 
-          <div className="">
-            <h1 className="mb-6 text-3xl md:text-5xl lg:text-6xl">{title}</h1>
-          </div>
+          <h1 className="mb-6 text-3xl md:text-5xl lg:text-6xl font-bold text-shadow-md">
+            {title}
+          </h1>
 
-          <div className="flex flex-col md:flex-row gap-4 md:gap-16">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-16 text-white/90 backdrop-blur-sm bg-black/20 p-4 rounded-md inline-block">
             {hasAuthors && (
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm">Author</p>
-
-                  <p>{formatAuthors(populatedAuthors)}</p>
-                </div>
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-medium">Author</p>
+                <p className="text-shadow-sm">{formatAuthors(populatedAuthors)}</p>
               </div>
             )}
             {publishedAt && (
-              <div className="flex flex-col gap-1">
-                <p className="text-sm">Date Published</p>
-
-                <time dateTime={publishedAt}>{formatDateTime(publishedAt)}</time>
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-medium">Date Published</p>
+                <time dateTime={publishedAt} className="text-shadow-sm">
+                  {formatDateTime(publishedAt)}
+                </time>
               </div>
             )}
           </div>
         </div>
-      </div>
-      <div className="min-h-[80vh] select-none">
-        {heroImage && typeof heroImage !== 'string' && (
-          <Media fill priority imgClassName="-z-10 object-cover" resource={heroImage} />
-        )}
-        <div className="absolute pointer-events-none left-0 bottom-0 w-full h-1/2 bg-gradient-to-t from-black to-transparent" />
       </div>
     </div>
   )

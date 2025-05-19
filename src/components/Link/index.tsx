@@ -18,6 +18,7 @@ type CMSLinkType = {
   size?: ButtonProps['size'] | null
   type?: 'custom' | 'reference' | null
   url?: string | null
+  overrideClassName?: boolean
 }
 
 export const CMSLink: React.FC<CMSLinkType> = (props) => {
@@ -31,6 +32,7 @@ export const CMSLink: React.FC<CMSLinkType> = (props) => {
     reference,
     size: sizeFromProps,
     url,
+    overrideClassName = false,
   } = props
 
   const href =
@@ -48,7 +50,24 @@ export const CMSLink: React.FC<CMSLinkType> = (props) => {
   /* Ensure we don't break any styles set by richText */
   if (appearance === 'inline') {
     return (
-      <Link className={cn(className)} href={href || url || ''} {...newTabProps}>
+      <Link 
+        className={cn(
+          overrideClassName ? className : '',
+          !overrideClassName && "text-blue-600 hover:text-blue-800 underline-offset-2 hover:underline",
+          !overrideClassName && className
+        )} 
+        href={href || url || ''} 
+        {...newTabProps}
+      >
+        {label && label}
+        {children && children}
+      </Link>
+    )
+  }
+
+  if (overrideClassName) {
+    return (
+      <Link className={className} href={href || url || ''} {...newTabProps}>
         {label && label}
         {children && children}
       </Link>
@@ -57,7 +76,7 @@ export const CMSLink: React.FC<CMSLinkType> = (props) => {
 
   return (
     <Button asChild className={className} size={size} variant={appearance}>
-      <Link className={cn(className)} href={href || url || ''} {...newTabProps}>
+      <Link href={href || url || ''} {...newTabProps}>
         {label && label}
         {children && children}
       </Link>
