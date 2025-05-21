@@ -101,6 +101,7 @@ export default async function Page({ params: paramsPromise }: Args) {
           },
         },
       })
+      console.log(`[SERVER] Found ${productsResult.docs.length} featured products`)
       featuredProducts = productsResult.docs
     } catch (error) {
       console.error('Error fetching featured products:', error)
@@ -133,8 +134,20 @@ export default async function Page({ params: paramsPromise }: Args) {
     }
   }
 
+  // Extract the CTA block from layout if on home page
+  let ctaBlock = null
+  let filteredLayout = layout || []
+  
+  if (slug === 'home' && layout && layout.length > 0) {
+    // Find and extract the CTA block
+    ctaBlock = layout.find(block => block.blockType === 'cta') || null
+    
+    // Filter out the CTA block from the layout so it's not rendered twice
+    filteredLayout = layout.filter(block => block.blockType !== 'cta')
+  }
+
   return (
-    <article className="pt-20 pb-24">
+    <article className="pb-24">
       {/* Allows redirects for valid pages too */}
       <PayloadRedirects disableNotFound url={url} />
 
@@ -143,13 +156,19 @@ export default async function Page({ params: paramsPromise }: Args) {
       {slug === 'home' ? (
         <section>
           <RenderHero {...hero} />
+          {/* Render content blocks from layout here, excluding CTA block */}
+          {filteredLayout && filteredLayout.length > 0 && (
+            <Gutter className="my-12">
+              <RenderBlocks blocks={filteredLayout} />
+            </Gutter>
+          )}
           <Gutter className={classes.home}>
             {/* Pass data to the client component for the homepage */}
             <PageClient 
               categories={categories} 
               featuredProducts={featuredProducts}
               aboutPage={aboutPage}
-              callToActionBlock={layout?.find(block => block.blockType === 'cta')}
+              callToActionBlock={ctaBlock}
             />
           </Gutter>
         </section>

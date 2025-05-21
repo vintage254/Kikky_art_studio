@@ -5,8 +5,11 @@ import React from 'react'
 
 import type { Page, Post } from '@/payload-types'
 
+// Define valid button variants based on the button component
+type ButtonVariant = 'default' | 'destructive' | 'ghost' | 'link' | 'outline' | 'secondary';
+
 type CMSLinkType = {
-  appearance?: 'inline' | ButtonProps['variant']
+  appearance?: 'inline' | ButtonVariant
   children?: React.ReactNode
   className?: string
   label?: string | null
@@ -19,6 +22,7 @@ type CMSLinkType = {
   type?: 'custom' | 'reference' | null
   url?: string | null
   overrideClassName?: boolean
+  variant?: ButtonProps['variant']
 }
 
 export const CMSLink: React.FC<CMSLinkType> = (props) => {
@@ -33,6 +37,7 @@ export const CMSLink: React.FC<CMSLinkType> = (props) => {
     size: sizeFromProps,
     url,
     overrideClassName = false,
+    variant,
   } = props
 
   const href =
@@ -44,11 +49,11 @@ export const CMSLink: React.FC<CMSLinkType> = (props) => {
 
   if (!href) return null
 
-  const size = appearance === 'link' ? 'clear' : sizeFromProps
+  const size = appearance === 'link' ? 'clear' : sizeFromProps || 'default'
   const newTabProps = newTab ? { rel: 'noopener noreferrer', target: '_blank' } : {}
 
   /* Ensure we don't break any styles set by richText */
-  if (appearance === 'inline') {
+  if (appearance === 'inline' && !variant) {
     return (
       <Link 
         className={cn(
@@ -74,11 +79,30 @@ export const CMSLink: React.FC<CMSLinkType> = (props) => {
     )
   }
 
+  // Properly handle variant selection to avoid TypeScript errors
+  const buttonVariant = (): ButtonProps['variant'] => {
+    // First use provided variant if available
+    if (variant) return variant;
+    
+    // If appearance is 'inline', default to 'default'
+    if (appearance === 'inline') return 'default';
+    
+    // For all other cases, appearance is a valid button variant
+    return appearance as ButtonVariant;
+  };
+
   return (
-    <Button asChild className={className} size={size} variant={appearance}>
+    <Button 
+      asChild 
+      className={cn(
+        "min-h-[44px] px-4 py-2 flex items-center justify-center", 
+        className
+      )}
+      size={size} 
+      variant={buttonVariant()}
+    >
       <Link href={href || url || ''} {...newTabProps}>
-        {label && label}
-        {children && children}
+        {label || children}
       </Link>
     </Button>
   )

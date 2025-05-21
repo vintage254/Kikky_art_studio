@@ -10,6 +10,18 @@ export const Header: GlobalConfig = {
   },
   fields: [
     {
+      name: 'logo',
+      type: 'upload',
+      relationTo: 'media',
+      label: 'Logo',
+      admin: {
+        description: 'Optional. Upload a custom logo to replace the default one.',
+      },
+      filterOptions: {
+        mimeType: { contains: 'image' },
+      },
+    },
+    {
       name: 'navItems',
       type: 'array',
       fields: [

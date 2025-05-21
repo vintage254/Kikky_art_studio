@@ -2,7 +2,7 @@
 import { useHeaderTheme } from '@/providers/HeaderTheme'
 import React, { useEffect } from 'react'
 import classes from './index.module.scss'
-import type { Category as PayloadCategory, Product, CallToActionBlock } from '@/payload-types'
+import type { Category as PayloadCategory, Product, CallToActionBlock as CTABlockType, Media } from '@/payload-types'
 import { ProductCarousel } from '@/components/ProductCarousel'
 import { AboutSection } from '@/components/AboutSection'
 import Image from 'next/image'
@@ -11,6 +11,11 @@ import Link from 'next/link'
 import { Instagram } from 'lucide-react'
 import WhatsAppIcon from '@/components/ui/WhatsAppIcon'
 import { getClientSideURL } from '@/utilities/getURL'
+import { CallToActionBlock } from '@/blocks/CallToAction/Component'
+import { FadeInView } from '@/components/animations/FadeInView'
+import { StaggeredList } from '@/components/animations/StaggeredList'
+import { PageTransition } from '@/components/animations/PageTransition'
+import { useAnimation } from '@/providers/AnimationProvider'
 
 // Define type for category that matches Payload's Category type
 type Category = PayloadCategory
@@ -46,8 +51,13 @@ interface PageClientProps {
     slug?: string
     description?: string
   } | null
-  callToActionBlock?: CallToActionBlock | null
+  callToActionBlock?: CTABlockType | null
 }
+
+// Helper function to determine if an image is a Media object or just an ID
+const isMediaObject = (image: number | Media | null | undefined): image is Media => {
+  return typeof image !== 'number' && image !== null && image !== undefined && 'url' in image;
+};
 
 // Extract social media links from URLs
 const getSocialMediaType = (url: string | null | undefined): 'instagram' | 'whatsapp' | 'other' => {
@@ -75,7 +85,7 @@ const SocialLinks: React.FC<SocialLinksProps> = ({ links }) => {
   if (socialLinks.length === 0) return null
 
   return (
-    <div className="w-full py-10">
+    <FadeInView className="w-full py-10">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8">
           <h2 className="text-2xl font-bold mb-6 text-center">Connect With Us</h2>
@@ -107,7 +117,7 @@ const SocialLinks: React.FC<SocialLinksProps> = ({ links }) => {
           </div>
         </div>
       </div>
-    </div>
+    </FadeInView>
   )
 }
 
@@ -119,8 +129,10 @@ const Categories: React.FC<CategoriesProps> = ({ categories }) => {
   
   return (
     <div className="w-full py-10">
+      <FadeInView>
       <h2 className="text-2xl font-bold mb-6 text-center">Categories</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      </FadeInView>
+      <StaggeredList className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {categories.map((category) => (
           <Link 
             key={category.id}
@@ -131,8 +143,8 @@ const Categories: React.FC<CategoriesProps> = ({ categories }) => {
               <div className="relative w-full h-48">
                 <Image
                   src={`${baseUrl}${
-                    // Use optional chaining for all potential undefined values
-                    category.image?.url || ''
+                    // Check if image is a Media object before accessing url property
+                    isMediaObject(category.image) ? category.image.url : ''
                   }`}
                   alt={category.title || 'Category image'}
                   fill
@@ -152,7 +164,7 @@ const Categories: React.FC<CategoriesProps> = ({ categories }) => {
             </div>
           </Link>
         ))}
-      </div>
+      </StaggeredList>
     </div>
   )
 }
@@ -160,6 +172,7 @@ const Categories: React.FC<CategoriesProps> = ({ categories }) => {
 const PageClient: React.FC<PageClientProps> = ({ categories, featuredProducts, aboutPage, callToActionBlock }) => {
   /* Force the header to be dark mode while we have an image behind it */
   const { setHeaderTheme } = useHeaderTheme()
+  const { prefersReducedMotion } = useAnimation()
 
   useEffect(() => {
     setHeaderTheme('light')
@@ -167,14 +180,26 @@ const PageClient: React.FC<PageClientProps> = ({ categories, featuredProducts, a
 
   // Only render the home components if we have them (for the homepage)
   return (
-    <div className={classes.home}>
+    <PageTransition className={classes.home}>
       {categories && <Categories categories={categories} />}
-      {featuredProducts && <ProductCarousel products={featuredProducts} />}
-      <AboutSection aboutPage={aboutPage} />
-      {callToActionBlock?.links && callToActionBlock.links.length > 0 && (
-        <SocialLinks links={callToActionBlock.links} />
+      
+      {featuredProducts && (
+        <FadeInView delay={0.2} duration={0.7}>
+          <ProductCarousel products={featuredProducts} />
+        </FadeInView>
       )}
-    </div>
+      
+      <FadeInView delay={0.3} duration={0.7}>
+      <AboutSection aboutPage={aboutPage} />
+      </FadeInView>
+      
+      {/* CTA Block - placed after the AboutSection with consistent spacing */}
+      {callToActionBlock && (
+        <FadeInView delay={0.4} duration={0.7} className="pb-10">
+          <CallToActionBlock {...callToActionBlock} />
+        </FadeInView>
+      )}
+    </PageTransition>
   )
 }
 

@@ -59,7 +59,7 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
   useEffect(() => {
     // Initialize image source based on resource
     if (!srcFromProps && resource && typeof resource === 'object') {
-      const { alt: altFromResource, height: fullHeight, url, width: fullWidth } = resource
+      const { alt: altFromResource, height: fullHeight, url, width: fullWidth, sizes } = resource
 
       width = fullWidth!
       height = fullHeight!
@@ -67,6 +67,27 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
 
       try {
         const baseUrl = getClientSideURL()
+
+        // If a specific size is requested and available in the resource sizes, use that
+        if (sizeFromProps && sizes && typeof sizes === 'object') {
+          const sizeObj = sizes[sizeFromProps as keyof typeof sizes]
+          
+          // If the requested size exists
+          if (sizeObj && typeof sizeObj === 'object' && 'url' in sizeObj && sizeObj.url) {
+            const sizeUrl = sizeObj.url
+            const finalSizeUrl = sizeUrl.startsWith('/') || sizeUrl.startsWith('http') 
+              ? sizeUrl 
+              : `${baseUrl}${sizeUrl}`
+              
+            setImgSrc(finalSizeUrl)
+            
+            // Update width and height if available in the size object
+            if ('width' in sizeObj && sizeObj.width) width = sizeObj.width
+            if ('height' in sizeObj && sizeObj.height) height = sizeObj.height
+            
+            return
+          }
+        }
 
         // Ensure URL is absolute if it starts with /api
         if (url && url.startsWith('/api')) {
@@ -84,7 +105,7 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
         setImgSrc(placeholderBlur)
       }
     }
-  }, [resource, srcFromProps])
+  }, [resource, srcFromProps, sizeFromProps])
 
   const loading = loadingFromProps || (!priority ? 'lazy' : undefined)
 

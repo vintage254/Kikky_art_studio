@@ -44,6 +44,8 @@ export const Media: CollectionConfig = {
     staticURL: '/media',
     adminThumbnail: 'thumbnail',
     mimeTypes: ['image/*', 'video/*'],
+    // Disable cache tags to prevent issues with image preview URLs
+    cacheTags: false,
     focalPoint: {
       enabled: true,
     },

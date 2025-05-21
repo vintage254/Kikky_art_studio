@@ -64,6 +64,23 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
           },
         ],
       },
+      {
+        name: 'image',
+        type: 'upload',
+        relationTo: 'media',
+        admin: {
+          description: 'Optional image to display with this link',
+        },
+        required: false,
+      },
+      {
+        name: 'description',
+        type: 'textarea',
+        admin: {
+          description: 'Optional short description for this link',
+        },
+        required: false,
+      },
     ],
   }
 

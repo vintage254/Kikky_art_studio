@@ -129,3 +129,36 @@ html[data-theme='dark'],
 html[data-theme='light'] {
   opacity: initial;
 }
+
+/* Swiper Styles */
+.product-carousel .swiper-button-next,
+.product-carousel .swiper-button-prev {
+  color: #3b82f6; /* Blue-600 in Tailwind */
+}
+
+.product-carousel .swiper-pagination-bullet-active {
+  background-color: #3b82f6; /* Blue-600 in Tailwind */
+}
+
+.product-carousel .swiper-slide {
+  height: auto; /* Makes slides the same height */
+}
+
+/* Make sure navigation buttons are visible on smaller screens */
+@media (max-width: 640px) {
+  .product-carousel .swiper-button-next,
+  .product-carousel .swiper-button-prev {
+    transform: scale(0.7);
+  }
+}
+
+/* Fix for navigation arrows z-index */
+.product-carousel .swiper-button-next:after,
+.product-carousel .swiper-button-prev:after {
+  font-size: 1.5rem !important;
+}
+
+/* Add some padding to ensure navigation controls don't overlap with content */
+.product-carousel {
+  padding: 0 10px 40px 10px !important;
+}
