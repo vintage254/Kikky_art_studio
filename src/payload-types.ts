@@ -71,6 +71,7 @@ export interface Config {
     posts: Post;
     products: Product;
     orders: Order;
+    carts: Cart;
     media: Media;
     categories: Category;
     users: User;
@@ -89,6 +90,7 @@ export interface Config {
     posts: PostsSelect<false> | PostsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
+    carts: CartsSelect<false> | CartsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -397,8 +399,40 @@ export interface Category {
  */
 export interface User {
   id: number;
-  name?: string | null;
+  name: string;
+  /**
+   * First name for shipping and billing
+   */
+  firstName?: string | null;
+  /**
+   * Last name for shipping and billing
+   */
+  lastName?: string | null;
+  /**
+   * Phone number for order notifications
+   */
+  phone?: string | null;
+  /**
+   * Orders placed by this user
+   */
+  orders?: (number | Order)[] | null;
   role?: ('admin' | 'customer') | null;
+  /**
+   * Saved shipping addresses
+   */
+  shippingAddresses?:
+    | {
+        /**
+         * Name for this address (e.g. Home, Work)
+         */
+        addressName?: string | null;
+        street?: string | null;
+        city?: string | null;
+        county?: string | null;
+        isDefault?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -406,9 +440,160 @@ export interface User {
   resetPasswordExpiration?: string | null;
   salt?: string | null;
   hash?: string | null;
+  _verified?: boolean | null;
+  _verificationToken?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
   password?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: number;
+  user: number | User;
+  items: {
+    product: number | Product;
+    quantity: number;
+    /**
+     * Price at time of purchase (in smallest currency unit)
+     */
+    price: number;
+    id?: string | null;
+  }[];
+  /**
+   * Total amount charged (in smallest currency unit)
+   */
+  total: number;
+  status: 'pending' | 'processing' | 'paid' | 'failed' | 'shipped' | 'delivered' | 'canceled' | 'refunded';
+  paymentMethod: 'stripe' | 'mpesa' | 'pod';
+  /**
+   * For POD orders, mark as paid only when payment is received
+   */
+  paymentStatus: 'pending' | 'paid';
+  /**
+   * Track the fulfillment status of the order
+   */
+  deliveryStatus: 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  /**
+   * Payment processor transaction ID (not applicable for POD)
+   */
+  transactionID?: string | null;
+  shippingAddress?: {
+    name?: string | null;
+    line1?: string | null;
+    line2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postalCode?: string | null;
+    country?: string | null;
+  };
+  /**
+   * Additional order notes or comments
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Product catalog. Stripe integration is optional and only active when STRIPE_SECRET_KEY is configured.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: number;
+  /**
+   * The display name of the product
+   */
+  title: string;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Product pricing information
+   */
+  price: {
+    /**
+     * Price in the smallest currency unit (e.g., cents for USD)
+     */
+    value: number;
+    /**
+     * Select the currency for this product
+     */
+    currency: 'USD' | 'EUR' | 'KES' | 'GBP' | 'JPY' | 'CAD';
+  };
+  /**
+   * Upload one or more images for this product
+   */
+  images?:
+    | {
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Select the product category
+   */
+  category: number | Category;
+  /**
+   * Check to display this product in featured sections
+   */
+  isFeatured?: boolean | null;
+  /**
+   * Current inventory stock level
+   */
+  stock?: number | null;
+  /**
+   * Whether to display the stock level on the product page
+   */
+  showStock?: boolean | null;
+  /**
+   * Unique product identifier (Stock Keeping Unit)
+   */
+  sku?: string | null;
+  /**
+   * ID of the corresponding product in Stripe (automatically populated if Stripe is configured)
+   */
+  stripeProductID?: string | null;
+  /**
+   * ID of the corresponding price in Stripe (automatically populated if Stripe is configured)
+   */
+  stripePriceID?: string | null;
+  /**
+   * Controls whether this product is available for purchase
+   */
+  isActive?: boolean | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  /**
+   * Select products that relate to this one (optional)
+   */
+  relatedProducts?: (number | Product)[] | null;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -769,143 +954,42 @@ export interface Form {
   createdAt: string;
 }
 /**
- * Product catalog. Stripe integration is optional and only active when STRIPE_SECRET_KEY is configured.
- *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "products".
+ * via the `definition` "carts".
  */
-export interface Product {
+export interface Cart {
   id: number;
   /**
-   * The display name of the product
+   * User who owns this cart
    */
-  title: string;
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+  user: number | User;
   /**
-   * Product pricing information
+   * Items in this cart
    */
-  price: {
-    /**
-     * Price in the smallest currency unit (e.g., cents for USD)
-     */
-    value: number;
-    /**
-     * Select the currency for this product
-     */
-    currency: 'USD' | 'EUR' | 'KES' | 'GBP' | 'JPY' | 'CAD';
-  };
-  /**
-   * Upload one or more images for this product
-   */
-  images?:
+  items?:
     | {
-        image: number | Media;
+        product: number | Product;
+        quantity: number;
+        addedAt?: string | null;
         id?: string | null;
       }[]
     | null;
   /**
-   * Select the product category
+   * Session ID for guest carts
    */
-  category: number | Category;
+  sessionId?: string | null;
   /**
-   * Check to display this product in featured sections
+   * Additional metadata for the cart
    */
-  isFeatured?: boolean | null;
-  /**
-   * Current inventory stock level
-   */
-  stock?: number | null;
-  /**
-   * Unique product identifier (Stock Keeping Unit)
-   */
-  sku?: string | null;
-  /**
-   * ID of the corresponding product in Stripe (automatically populated if Stripe is configured)
-   */
-  stripeProductID?: string | null;
-  /**
-   * ID of the corresponding price in Stripe (automatically populated if Stripe is configured)
-   */
-  stripePriceID?: string | null;
-  /**
-   * Controls whether this product is available for purchase
-   */
-  isActive?: boolean | null;
-  meta?: {
-    title?: string | null;
-    description?: string | null;
-    /**
-     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
-     */
-    image?: (number | null) | Media;
-  };
-  slug?: string | null;
-  slugLock?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "orders".
- */
-export interface Order {
-  id: number;
-  user: number | User;
-  items: {
-    product: number | Product;
-    quantity: number;
-    /**
-     * Price at time of purchase (in smallest currency unit)
-     */
-    price: number;
-    id?: string | null;
-  }[];
-  /**
-   * Total amount charged (in smallest currency unit)
-   */
-  total: number;
-  status: 'pending' | 'processing' | 'paid' | 'failed' | 'shipped' | 'delivered' | 'canceled' | 'refunded';
-  paymentMethod: 'stripe' | 'mpesa' | 'pod';
-  /**
-   * For POD orders, mark as paid only when payment is received
-   */
-  paymentStatus: 'pending' | 'paid';
-  /**
-   * Track the fulfillment status of the order
-   */
-  deliveryStatus: 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  /**
-   * Payment processor transaction ID (not applicable for POD)
-   */
-  transactionID?: string | null;
-  shippingAddress?: {
-    name?: string | null;
-    line1?: string | null;
-    line2?: string | null;
-    city?: string | null;
-    state?: string | null;
-    postalCode?: string | null;
-    country?: string | null;
-  };
-  /**
-   * Additional order notes or comments
-   */
-  notes?: string | null;
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1096,6 +1180,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'orders';
         value: number | Order;
+      } | null)
+    | ({
+        relationTo: 'carts';
+        value: number | Cart;
       } | null)
     | ({
         relationTo: 'media';
@@ -1365,6 +1453,7 @@ export interface ProductsSelect<T extends boolean = true> {
   category?: T;
   isFeatured?: T;
   stock?: T;
+  showStock?: T;
   sku?: T;
   stripeProductID?: T;
   stripePriceID?: T;
@@ -1376,6 +1465,7 @@ export interface ProductsSelect<T extends boolean = true> {
         description?: T;
         image?: T;
       };
+  relatedProducts?: T;
   slug?: T;
   slugLock?: T;
   updatedAt?: T;
@@ -1414,6 +1504,25 @@ export interface OrdersSelect<T extends boolean = true> {
         country?: T;
       };
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "carts_select".
+ */
+export interface CartsSelect<T extends boolean = true> {
+  user?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        quantity?: T;
+        addedAt?: T;
+        id?: T;
+      };
+  sessionId?: T;
+  metadata?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1544,7 +1653,21 @@ export interface CategoriesSelect<T extends boolean = true> {
  */
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
+  firstName?: T;
+  lastName?: T;
+  phone?: T;
+  orders?: T;
   role?: T;
+  shippingAddresses?:
+    | T
+    | {
+        addressName?: T;
+        street?: T;
+        city?: T;
+        county?: T;
+        isDefault?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -1552,6 +1675,8 @@ export interface UsersSelect<T extends boolean = true> {
   resetPasswordExpiration?: T;
   salt?: T;
   hash?: T;
+  _verified?: T;
+  _verificationToken?: T;
   loginAttempts?: T;
   lockUntil?: T;
 }

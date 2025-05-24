@@ -73,17 +73,29 @@ export const ProductCarousel: React.FC<ProductCarouselProps> = ({ products }) =>
     }
   }
 
-  // Simple function to generate placeholder images if product images are missing
+  // Function to properly handle product image URLs, ensuring they're correctly formatted
   const getProductImageUrl = (product: Product) => {
     if (product.images && product.images.length > 0) {
       const imageRef = product.images[0]?.image;
       
       // Check if imageRef is a Media object with a url property
-      if (typeof imageRef === 'object' && imageRef !== null && 'url' in imageRef) {
-        return `${baseUrl}${imageRef.url}`
+      if (typeof imageRef === 'object' && imageRef !== null && 'url' in imageRef && imageRef.url) {
+        // Handle URLs properly based on whether they're already absolute
+        if (imageRef.url.startsWith('http')) {
+          return imageRef.url // Already an absolute URL
+        } else {
+          // Safely join the URL parts using the URL constructor
+          try {
+            return new URL(imageRef.url, baseUrl).toString()
+          } catch (error) {
+            console.error('Error creating image URL:', error)
+            return '/placeholder-image.jpg' // Fallback to placeholder
+          }
+        }
       }
     }
-    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM5Y2EzYWYiPkltYWdlIFVuYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
+    // Return placeholder for products without images
+    return '/placeholder-image.jpg'
   }
 
   console.log('ProductCarousel: Rendering carousel with', products.length, 'products')

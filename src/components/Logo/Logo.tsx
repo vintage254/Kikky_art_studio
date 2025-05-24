@@ -32,9 +32,14 @@ export const Logo = (props: Props) => {
     // Calculate proportional width based on original aspect ratio
     const calculatedWidth = Math.round((originalWidth / originalHeight) * targetHeight)
     
+    // Check if the logo URL is already an absolute URL (starts with http or https)
+    const logoUrl = customLogo.url.startsWith('http') 
+      ? customLogo.url 
+      : new URL(customLogo.url, baseUrl).toString();
+    
     return (
       <Image
-        src={`${baseUrl}${customLogo.url}`}
+        src={logoUrl}
         alt={customLogo.alt || "Site Logo"}
         width={calculatedWidth}
         height={targetHeight}

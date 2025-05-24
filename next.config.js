@@ -26,12 +26,13 @@ const nextConfig = {
         port: '3001',
         pathname: '/api/media/**',
       },
-      {
+      // Ensure we have a valid hostname for the production URL
+      process.env.NEXT_PUBLIC_SERVER_URL ? {
         protocol: 'https',
-        hostname: process.env.NEXT_PUBLIC_SERVER_URL?.replace('https://', ''),
+        hostname: process.env.NEXT_PUBLIC_SERVER_URL.replace(/^https?:\/\//, '').split(':')[0],
         port: '',
         pathname: '/api/media/**',
-      },
+      } : null,
       // Add your production domain if needed
       {
         protocol: 'https',
@@ -71,10 +72,9 @@ const nextConfig = {
   publicRuntimeConfig: {
     payloadURL: PAYLOAD_URL,
   },
-  // Increase general timeout for better handling of slow responses
+  // Configure HTTP agent options
   httpAgentOptions: {
-    keepAlive: true,
-    timeout: 60000, // 60 seconds
+    keepAlive: true
   }
 }
 

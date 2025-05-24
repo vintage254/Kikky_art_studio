@@ -31,7 +31,8 @@ export async function generateStaticParams() {
 
   const params = pages.docs
     ?.filter((doc) => {
-      return doc.slug !== 'home'
+      // Exclude home, products, and account slugs as they have custom implementations
+      return doc.slug !== 'home' && doc.slug !== 'products' && doc.slug !== 'account'
     })
     .map(({ slug }) => {
       return { slug }
@@ -50,6 +51,11 @@ export default async function Page({ params: paramsPromise }: Args) {
   const { isEnabled: draft } = await draftMode()
   const { slug = 'home' } = await paramsPromise
   const url = '/' + slug
+
+  // Special handling for account page - redirect to the account UI
+  if (slug === 'account') {
+    return <PayloadRedirects url="/account" forceRedirect />
+  }
 
   let page: RequiredDataFromCollectionSlug<'pages'> | null
 

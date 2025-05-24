@@ -12,6 +12,7 @@ import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { Products } from './collections/Products'
 import { Orders } from './collections/Orders'
+import { Carts } from './collections/Carts'
 import { Users } from './collections/Users'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
@@ -24,6 +25,25 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 export default buildConfig({
+  serverURL: getServerSideURL(),
+  
+  // Configure CSRF protection (array of trusted origins)
+  csrf: [
+    // Allow same-origin requests
+    'http://localhost:3000',
+    'http://localhost:3001',
+    ...(process.env.PAYLOAD_PUBLIC_SERVER_URL ? [process.env.PAYLOAD_PUBLIC_SERVER_URL] : []),
+  ],
+  
+  // Update CORS configuration to allow requests from both frontend and admin
+  cors: [
+    // Development URLs
+    'http://localhost:3000',
+    'http://localhost:3001',
+    // Add your production URLs if needed
+    ...(process.env.PAYLOAD_PUBLIC_CORS || '').split(',').filter(Boolean),
+  ].filter(Boolean),
+  
   admin: {
     components: {
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
@@ -77,14 +97,9 @@ export default buildConfig({
         query_timeout: parseInt(process.env.DATABASE_QUERY_TIMEOUT_MS)
       } : {})
     },
-    onConnect: async (client) => {
-      // Optional: Configure some client settings
-      // For example, set a statement timeout to avoid long-running queries
-      await client.query('SET statement_timeout = 10000'); // 10 second query timeout
-    },
+    // Removed onConnect to fix TypeScript error
   }),
-  collections: [Pages, Posts, Products, Orders, Media, Categories, Users],
-  cors: [getServerSideURL()].filter(Boolean),
+  collections: [Pages, Posts, Products, Orders, Carts, Media, Categories, Users],
   endpoints: [...paymentWebhooks],
   globals: [Header, Footer],
   plugins: [

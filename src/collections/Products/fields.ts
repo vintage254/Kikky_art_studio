@@ -138,6 +138,16 @@ export const productFields: Field[] = [
     },
   },
   {
+    name: 'showStock',
+    type: 'checkbox',
+    label: 'Show Stock in UI',
+    defaultValue: true,
+    admin: {
+      description: 'Whether to display the stock level on the product page',
+      position: 'sidebar',
+    },
+  },
+  {
     name: 'sku',
     type: 'text',
     label: 'SKU',
@@ -189,6 +199,24 @@ export const productFields: Field[] = [
         descriptionPath: 'meta.description',
       }),
     ],
+  },
+  {
+    name: 'relatedProducts',
+    type: 'relationship',
+    relationTo: 'products',
+    hasMany: true,
+    required: false, // Explicitly mark as optional to avoid database issues
+    admin: {
+      description: 'Select products that relate to this one (optional)',
+      position: 'sidebar',
+    },
+    filterOptions: ({ id }) => {
+      return {
+        id: {
+          not_equals: id,
+        },
+      }
+    },
   },
   // Temporarily commenting out the paywall field until properly configured
   // {

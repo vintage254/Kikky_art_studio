@@ -89,12 +89,22 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
           }
         }
 
-        // Ensure URL is absolute if it starts with /api
-        if (url && url.startsWith('/api')) {
-          const finalUrl = `${baseUrl}${url}`
-          setImgSrc(finalUrl)
-        } else if (url) {
-          setImgSrc(`${baseUrl}${url}`)
+        // Handle URL construction properly to avoid invalid URLs
+        if (url) {
+          try {
+            // Handle absolute URLs directly
+            if (url.startsWith('http')) {
+              setImgSrc(url)
+            } else {
+              // For relative URLs, use the URL constructor to safely join paths
+              const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
+              const cleanUrl = url.startsWith('/') ? url : `/${url}`
+              setImgSrc(`${cleanBaseUrl}${cleanUrl}`)
+            }
+          } catch (error) {
+            console.error('Error creating image URL:', error)
+            setImgSrc(placeholderBlur)
+          }
         } else {
           // Use placeholder if no URL provided instead of empty string
           setImgSrc(placeholderBlur)

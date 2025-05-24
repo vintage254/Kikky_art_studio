@@ -54,9 +54,16 @@ interface PageClientProps {
   callToActionBlock?: CTABlockType | null
 }
 
-// Helper function to determine if an image is a Media object or just an ID
-const isMediaObject = (image: number | Media | null | undefined): image is Media => {
-  return typeof image !== 'number' && image !== null && image !== undefined && 'url' in image;
+// Helper function to determine if an image is a Media object with a valid URL
+const isMediaObject = (image: number | Media | null | undefined): image is Media & { url: string } => {
+  return typeof image !== 'number' && 
+    image !== null && 
+    image !== undefined && 
+    'url' in image && 
+    typeof image.url === 'string' && 
+    image.url !== null && 
+    image.url !== undefined && 
+    image.url !== '';
 };
 
 // Extract social media links from URLs
@@ -142,10 +149,14 @@ const Categories: React.FC<CategoriesProps> = ({ categories }) => {
             {category.image && (
               <div className="relative w-full h-48">
                 <Image
-                  src={`${baseUrl}${
-                    // Check if image is a Media object before accessing url property
-                    isMediaObject(category.image) ? category.image.url : ''
-                  }`}
+                  src={
+                    // Our enhanced type guard ensures category.image.url is a valid string
+                    isMediaObject(category.image)
+                      ? category.image.url.startsWith('http')
+                        ? category.image.url // Use as-is if it's already an absolute URL
+                        : new URL(category.image.url, baseUrl).toString() // Properly join URLs
+                      : '/placeholder-image.jpg' // Fallback to a placeholder image instead of empty string
+                  }
                   alt={category.title || 'Category image'}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
