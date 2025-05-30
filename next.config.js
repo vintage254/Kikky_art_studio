@@ -1,6 +1,7 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 
 import redirects from './redirects.js'
+import neonResolver from './next-neon-resolver.js'
 
 const NEXT_PUBLIC_SERVER_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
@@ -58,16 +59,60 @@ const nextConfig = {
     staticGenerationMaxConcurrency: parseInt(process.env.NEXT_STATIC_GENERATION_MAX_CONCURRENCY || '2'),
     staticGenerationMinPagesPerWorker: parseInt(process.env.NEXT_STATIC_GENERATION_MIN_PAGES_PER_WORKER || '25'),
   },
-  // Handle Cloudflare sockets for Neon PostgreSQL on Vercel
+  // Handle Node.js modules for PostgreSQL on Vercel
   webpack: (config, { isServer, dev }) => {
-    // Add Cloudflare sockets polyfill for Neon PostgreSQL
-    if (!dev && isServer) {
+    // Handle Node-specific modules in server build
+    if (isServer) {
+      // Mark these modules as external to prevent bundling
+      config.externals = [...(config.externals || []), 
+        // Tell webpack these are external modules that should not be bundled
+        'cloudflare:sockets',
+        'pg-native',
+        'pg-cloudflare',
+        // Treat all node: protocol imports as external
+        /^node:/,
+      ];
+      
+      // For Neon PostgreSQL support on Vercel
+      if (process.env.VERCEL) {
+        console.log('📊 Configuring webpack for Neon on Vercel');
+        // Use our custom neon-serverless.js adapter
+        config.resolve.alias = {
+          ...config.resolve.alias,
+          // Replace pg with neon serverless
+          'pg': '@neondatabase/serverless',
+        };
+      }
+    }
+
+    // For client-side builds, provide empty modules
+    if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         'cloudflare:sockets': false,
+        'pg-native': false,
+        'pg-cloudflare': false,
+        'fs': false,
+        'path': false,
       };
     }
+    
     return config;
+  },
+  
+  // Use our custom module resolver
+  experimental: {
+    ...nextConfig.experimental || {},
+    serverComponentsExternalPackages: [
+      'cloudflare:sockets',
+      '@neondatabase/serverless',
+    ],
+    // Use the custom resolver
+    modularizeImports: {
+      '@neondatabase/serverless': {
+        transform: '@neondatabase/serverless/{{member}}',
+      },
+    },
   },
   // Add Turbopack config
   turbopack: {

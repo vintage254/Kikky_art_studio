@@ -1,6 +1,7 @@
 // storage-adapter-import-placeholder
 import { postgresAdapter } from '@payloadcms/db-postgres'
-import { Client } from 'pg'
+// Import both client and serverless adapters
+import { createNeonServerlessAdapter } from './utilities/database/neon-serverless-adapter'
 
 import sharp from 'sharp' // sharp-import
 import path from 'path'
@@ -83,18 +84,20 @@ export default buildConfig({
   },
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
-  // Use Postgres adapter with minimal pooling for better reliability with Neon
-  db: postgresAdapter({
-    pool: {
-      // Get the connection string from environment
-      connectionString: process.env.DATABASE_URI,
-      // Minimal pooling settings to prevent connection issues
-      max: 2,
-      idleTimeoutMillis: 5000,
-      connectionTimeoutMillis: 5000,
-      allowExitOnIdle: true
-    }
-  }),
+  // Use Neon serverless adapter when in production (Vercel), or regular PostgreSQL adapter in development
+  db: process.env.VERCEL 
+    ? createNeonServerlessAdapter() 
+    : postgresAdapter({
+        pool: {
+          // Get the connection string from environment
+          connectionString: process.env.DATABASE_URI,
+          // Minimal pooling settings to prevent connection issues
+          max: 2,
+          idleTimeoutMillis: 5000,
+          connectionTimeoutMillis: 5000,
+          allowExitOnIdle: true
+        }
+      }),
   collections: [Pages, Posts, Products, Orders, Carts, Media, Categories, Users],
   endpoints: [...paymentWebhooks],
   globals: [Header, Footer],
