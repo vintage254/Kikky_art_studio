@@ -3,6 +3,8 @@ import { withPayload } from '@payloadcms/next/withPayload'
 import redirects from './redirects.js'
 // Import using ES Module pattern
 import neonResolver from './neon-module-resolver.js'
+// Import the alias resolver
+const aliasResolver = require('./alias-resolver.js')
 
 const NEXT_PUBLIC_SERVER_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
@@ -75,6 +77,14 @@ const nextConfig = {
   },
   // Handle Node.js modules for PostgreSQL on Vercel
   webpack: (config, { isServer, dev }) => {
+    // Debug info for Vercel environment
+    if (process.env.VERCEL) {
+      console.log('📊 Configuring webpack for Neon on Vercel');
+    }
+
+    // Apply custom alias resolver for path aliases
+    config = aliasResolver(config);
+
     // Handle Node-specific modules in server build
     if (isServer) {
       // Mark these modules as external to prevent bundling
@@ -89,7 +99,6 @@ const nextConfig = {
       
       // For Neon PostgreSQL support on Vercel
       if (process.env.VERCEL) {
-        console.log('📊 Configuring webpack for Neon on Vercel');
         // Use our custom neon-serverless.js adapter
         config.resolve.alias = {
           ...config.resolve.alias,
@@ -99,15 +108,20 @@ const nextConfig = {
       }
     }
 
-    // For client-side builds, provide empty modules
+    // Add polyfills for missing Node.js modules
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        'cloudflare:sockets': false,
-        'pg-native': false,
-        'pg-cloudflare': false,
+        'crypto': require.resolve('crypto-browserify'),
+        'stream': require.resolve('stream-browserify'),
+        'util': require.resolve('util'),
+        'events': require.resolve('events'),
         'fs': false,
-        'path': false,
+        'path': require.resolve('path-browserify'),
+        'buffer': require.resolve('buffer'),
+        'os': require.resolve('os-browserify'),
+        'tls': false,
+        'net': false
       };
     }
     
