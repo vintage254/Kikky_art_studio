@@ -2,10 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getLoggedInUser } from '@/utilities/auth';
-import { getPayload } from 'payload';
-import configPromise from '@payload-config';
-import { User } from '@/payload-types';
+import type { User } from '@/payload-types';
 import { z } from 'zod';
 import { Button } from '@/components/ui/Button';
 import { AlertCircle, Check } from 'lucide-react';
@@ -66,8 +63,23 @@ export default function SettingsPage() {
       try {
         setIsLoading(true);
         
-        // Get the current user
-        const currentUser = await getLoggedInUser();
+        // Get the current user using client-side fetch
+        const response = await fetch('/api/users/me', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          router.push('/login');
+          return;
+        }
+
+        const data = await response.json();
+        const currentUser = data.user;
+        
         if (!currentUser) {
           router.push('/login');
           return;

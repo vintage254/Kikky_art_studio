@@ -1,8 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Product } from '@/payload-types';
-import { getLoggedInUser } from '@/utilities/auth';
+import type { Product, User } from '@/payload-types';
 
 // Define the cart item type
 export type CartItem = {
@@ -53,9 +52,24 @@ export function CartProvider({ children }: CartProviderProps) {
       try {
         setIsLoading(true);
         
-        // Check if user is logged in
-        const currentUser = await getLoggedInUser();
-        setUser(currentUser);
+        // Check if user is logged in using client-side fetch
+        try {
+          const response = await fetch('/api/users/me', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            setUser(data.user);
+          }
+        } catch (authError) {
+          console.error('Error fetching user:', authError);
+          // Continue with the local cart even if user auth fails
+        }
         
         // Load cart from localStorage
         const storedCart = localStorage.getItem(CART_STORAGE_KEY);
@@ -65,7 +79,7 @@ export function CartProvider({ children }: CartProviderProps) {
         
         // If user is logged in, we would fetch their cart from the API
         // and merge with local cart (future implementation)
-        if (currentUser) {
+        if (user) {
           // For now, just use localStorage
           // In a full implementation, we would fetch the user's cart from the API
           // and merge it with the local cart

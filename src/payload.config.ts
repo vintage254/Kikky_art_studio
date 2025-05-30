@@ -1,5 +1,6 @@
 // storage-adapter-import-placeholder
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { Client } from 'pg'
 
 import sharp from 'sharp' // sharp-import
 import path from 'path'
@@ -82,22 +83,17 @@ export default buildConfig({
   },
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
+  // Use Postgres adapter with minimal pooling for better reliability with Neon
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URI || '',
-      max: parseInt(process.env.DATABASE_POOL_MAX || '20'),
-      idleTimeoutMillis: parseInt(process.env.DATABASE_IDLE_TIMEOUT_MS || '20000'),
-      connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection not established
-      allowExitOnIdle: false, // Don't allow idle clients to exit during long-running operations
-      // Add additional timeout settings
-      ...(process.env.DATABASE_IDLE_IN_TRANSACTION_TIMEOUT_MS ? {
-        idle_in_transaction_session_timeout: parseInt(process.env.DATABASE_IDLE_IN_TRANSACTION_TIMEOUT_MS)
-      } : {}),
-      ...(process.env.DATABASE_QUERY_TIMEOUT_MS ? {
-        query_timeout: parseInt(process.env.DATABASE_QUERY_TIMEOUT_MS)
-      } : {})
-    },
-    // Removed onConnect to fix TypeScript error
+      // Get the connection string from environment
+      connectionString: process.env.DATABASE_URI,
+      // Minimal pooling settings to prevent connection issues
+      max: 2,
+      idleTimeoutMillis: 5000,
+      connectionTimeoutMillis: 5000,
+      allowExitOnIdle: true
+    }
   }),
   collections: [Pages, Posts, Products, Orders, Carts, Media, Categories, Users],
   endpoints: [...paymentWebhooks],

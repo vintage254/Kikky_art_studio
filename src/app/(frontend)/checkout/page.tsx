@@ -9,9 +9,6 @@ import { CartReview } from './components/CartReview';
 import { ShippingForm, ShippingFormData } from './components/ShippingForm';
 import { PaymentOptions, PaymentMethod } from './components/PaymentOptions';
 import { useCart } from '@/providers/CartProvider';
-import { getPayload } from 'payload';
-import configPromise from '@payload-config';
-import { getLoggedInUser } from '@/utilities/auth';
 import { AlertCircle } from 'lucide-react';
 
 // Define the checkout steps
@@ -143,30 +140,38 @@ export default function CheckoutPage() {
   // Process M-Pesa payment
   const processMpesaPayment = async () => {
     try {
-      // Initialize Payload
-      const payload = await getPayload({ config: configPromise });
-      const user = await getLoggedInUser();
+      // Get current user info using client fetch
+      const userResponse = await fetch('/api/users/me', {
+        credentials: 'include'
+      });
       
-      if (!user && !shippingData) {
+      // Check if we have necessary information
+      if (!userResponse.ok && !shippingData) {
         throw new Error('User information is required');
       }
+      
+      const userData = userResponse.ok ? await userResponse.json() : { user: null };
+      const user = userData.user;
       
       // Prepare order items
       const orderItems = items.map(item => ({
         product: item.product.id,
         title: item.product.title,
         quantity: item.quantity,
-        price: item.product.price.value,
-        currency: item.product.price.currency,
+        price: item.product.price,
       }));
       
       // Calculate total
       const total = calculateTotal();
       
-      // Create order with pending payment status
-      const order = await payload.create({
-        collection: 'orders',
-        data: {
+      // Create order with pending payment status using API endpoint
+      const orderResponse = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
           user: user?.id,
           customerEmail: shippingData.email,
           customerName: shippingData.name,
@@ -183,8 +188,15 @@ export default function CheckoutPage() {
             zip: shippingData.zipCode,
             country: shippingData.country,
           },
-        },
+        }),
       });
+      
+      if (!orderResponse.ok) {
+        const errorData = await orderResponse.json();
+        throw new Error(errorData.error || 'Failed to create order');
+      }
+      
+      const order = await orderResponse.json();
       
       // Clear cart and redirect to success page
       clearCart();
@@ -198,9 +210,13 @@ export default function CheckoutPage() {
   // Process Pay on Delivery
   const processPayOnDelivery = async () => {
     try {
-      // Initialize Payload
-      const payload = await getPayload({ config: configPromise });
-      const user = await getLoggedInUser();
+      // Get current user info using client fetch
+      const userResponse = await fetch('/api/users/me', {
+        credentials: 'include'
+      });
+      
+      const userData = userResponse.ok ? await userResponse.json() : { user: null };
+      const user = userData.user;
       
       if (!user && !shippingData) {
         throw new Error('User information is required');
@@ -218,10 +234,14 @@ export default function CheckoutPage() {
       // Calculate total
       const total = calculateTotal();
       
-      // Create order with pending payment status
-      const order = await payload.create({
-        collection: 'orders',
-        data: {
+      // Create order with cash on delivery using API endpoint
+      const orderResponse = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
           user: user?.id,
           customerEmail: shippingData.email,
           customerName: shippingData.name,
@@ -229,7 +249,7 @@ export default function CheckoutPage() {
           total,
           status: 'processing',
           paymentStatus: 'pending',
-          paymentMethod: 'pod',
+          paymentMethod: 'cash',
           shippingAddress: {
             name: shippingData.name,
             address: shippingData.address,
@@ -238,8 +258,15 @@ export default function CheckoutPage() {
             zip: shippingData.zipCode,
             country: shippingData.country,
           },
-        },
+        }),
       });
+      
+      if (!orderResponse.ok) {
+        const errorData = await orderResponse.json();
+        throw new Error(errorData.error || 'Failed to create order');
+      }
+      
+      const order = await orderResponse.json();
       
       // Clear cart and redirect to success page
       clearCart();

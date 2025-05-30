@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User } from '@/payload-types';
-import { getLoggedInUser } from '@/utilities/auth';
+import type { User } from '@/payload-types';
 import { Gutter } from '@/components/ui/Gutter';
 import { ShoppingBag, User as UserIcon, Package, Settings, X, Menu } from 'lucide-react';
 
@@ -41,10 +40,24 @@ export default function AccountLayout({
   useEffect(() => {
     async function fetchUser() {
       try {
-        const userData = await getLoggedInUser();
-        setUser(userData);
+        // Client-side fetch of user data
+        const response = await fetch('/api/users/me', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+        } else {
+          setUser(null);
+        }
       } catch (error) {
         console.error('Error fetching user:', error);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }

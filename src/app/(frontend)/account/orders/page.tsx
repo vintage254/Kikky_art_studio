@@ -3,10 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getLoggedInUser } from '@/utilities/auth';
-import { getPayload } from 'payload';
-import configPromise from '@payload-config';
-import { Order, User } from '@/payload-types';
+import type { Order, User } from '@/payload-types';
 import { format } from 'date-fns';
 import { Package, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -30,8 +27,18 @@ export default function OrdersPage() {
       try {
         setIsLoading(true);
         
-        // Get the current user
-        const currentUser = await getLoggedInUser();
+        // Get the current user using client-side fetch
+        const userResponse = await fetch('/api/users/me', {
+          credentials: 'include',
+        });
+        
+        if (!userResponse.ok) {
+          router.push('/login');
+          return;
+        }
+        
+        const userData = await userResponse.json();
+        const currentUser = userData.user;
         if (!currentUser) {
           router.push('/login');
           return;
@@ -39,20 +46,20 @@ export default function OrdersPage() {
         
         setUser(currentUser);
         
-        // Initialize Payload client
-        const payload = await getPayload({ config: configPromise });
-        
-        // Fetch user's orders
-        const { docs: userOrders } = await payload.find({
-          collection: 'orders',
-          where: {
-            customer: {
-              equals: currentUser.id,
-            },
-          },
-          sort: '-createdAt',
-          depth: 1, // To get product details
+        // Fetch user's orders using API endpoint
+        const ordersResponse = await fetch('/api/orders', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
+        
+        if (!ordersResponse.ok) {
+          throw new Error('Failed to fetch orders');
+        }
+        
+        const { docs: userOrders } = await ordersResponse.json();
         
         // Process orders for display
         const processedOrders = userOrders.map((order: any) => {
