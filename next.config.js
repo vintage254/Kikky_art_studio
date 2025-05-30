@@ -1,8 +1,8 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 
 import redirects from './redirects.js'
-// Import using CommonJS pattern for compatibility
-const neonResolver = require('./next-neon-resolver.js')
+// Import using ES Module pattern
+import neonResolver from './neon-module-resolver.js'
 
 const NEXT_PUBLIC_SERVER_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`

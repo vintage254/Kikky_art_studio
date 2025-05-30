@@ -5,7 +5,7 @@
  * when deploying to Vercel with Neon PostgreSQL.
  */
 
-// This file is referenced in next.config.js
+// Define the resolver object
 const neonResolver = {
   // This custom resolver helps Next.js understand how to handle certain modules
   resolveImport(specifier) {
@@ -23,3 +23,6 @@ const neonResolver = {
     return { resolved: false };
   }
 };
+
+// Export for ES Modules
+export default neonResolver;
