@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { requestPasswordReset, resetPassword } from '@/utilities/auth';
 import { z } from 'zod';
 import { Gutter } from '@/components/ui/Gutter';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // Form validation schema for request
 const requestSchema = z.object({

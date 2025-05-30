@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { registerUser } from '@/utilities/auth';
 import { z } from 'zod';
 import { Gutter } from '@/components/ui/Gutter';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // Form validation schema using Zod
 const registerSchema = z.object({
