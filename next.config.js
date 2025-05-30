@@ -59,6 +59,17 @@ const nextConfig = {
     staticGenerationRetryCount: parseInt(process.env.NEXT_STATIC_GENERATION_RETRY_COUNT || '3'),
     staticGenerationMaxConcurrency: parseInt(process.env.NEXT_STATIC_GENERATION_MAX_CONCURRENCY || '2'),
     staticGenerationMinPagesPerWorker: parseInt(process.env.NEXT_STATIC_GENERATION_MIN_PAGES_PER_WORKER || '25'),
+    // External packages configuration for serverless components
+    serverComponentsExternalPackages: [
+      'cloudflare:sockets',
+      '@neondatabase/serverless',
+    ],
+    // Use the custom resolver for imports
+    modularizeImports: {
+      '@neondatabase/serverless': {
+        transform: '@neondatabase/serverless/{{member}}',
+      },
+    },
   },
   // Handle Node.js modules for PostgreSQL on Vercel
   webpack: (config, { isServer, dev }) => {
@@ -101,20 +112,7 @@ const nextConfig = {
     return config;
   },
   
-  // Use our custom module resolver
-  experimental: {
-    ...nextConfig.experimental || {},
-    serverComponentsExternalPackages: [
-      'cloudflare:sockets',
-      '@neondatabase/serverless',
-    ],
-    // Use the custom resolver
-    modularizeImports: {
-      '@neondatabase/serverless': {
-        transform: '@neondatabase/serverless/{{member}}',
-      },
-    },
-  },
+  // We'll add experimental config inside the nextConfig variable below
   // Add Turbopack config
   turbopack: {
     // Migrate the resolveAlias that Payload would add to experimental.turbo
