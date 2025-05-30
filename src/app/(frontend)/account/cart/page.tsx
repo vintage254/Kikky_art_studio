@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/providers/CartProvider';
 import { Trash2, Plus, Minus } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { getClientSideURL } from '@/utilities/getURL';
 
 export default function CartPage() {
@@ -56,9 +56,12 @@ export default function CartPage() {
           
           // Get the product image URL
           let imageUrl = '';
-          if (product.featuredImage && typeof product.featuredImage === 'object' && 
-              product.featuredImage !== null && 'url' in product.featuredImage) {
-            imageUrl = `${baseUrl}${product.featuredImage.url}`;
+          // Check if product has images and use the first one
+          if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+            const firstImage = product.images[0]?.image;
+            if (typeof firstImage === 'object' && firstImage !== null && 'url' in firstImage) {
+              imageUrl = `${baseUrl}${firstImage.url}`;
+            }
           }
           
           return (
@@ -81,9 +84,9 @@ export default function CartPage() {
               
               {/* Product Info */}
               <div className="flex-1 flex flex-col">
-                <Link href={`/products/${product.slug}`} className="font-medium text-lg hover:underline">
-                  {product.title}
-                </Link>
+                <h2 className="text-lg font-medium text-gray-900">
+                  <Link href={`/products/${String(product.id)}`}>{product.title}</Link>
+                </h2>
                 
                 {/* Price Info */}
                 <div className="mt-2 text-sm text-gray-500">
@@ -96,7 +99,7 @@ export default function CartPage() {
                   {/* Quantity Controls */}
                   <div className="flex items-center border border-gray-300 rounded-md">
                     <button
-                      onClick={() => updateQuantity(product.id, Math.max(1, item.quantity - 1))}
+                      onClick={() => updateQuantity(String(product.id), Math.max(1, item.quantity - 1))}
                       className="p-2 text-gray-500 hover:text-gray-700"
                       aria-label="Decrease quantity"
                     >
@@ -108,7 +111,7 @@ export default function CartPage() {
                     </span>
                     
                     <button
-                      onClick={() => updateQuantity(product.id, item.quantity + 1)}
+                      onClick={() => updateQuantity(String(product.id), item.quantity + 1)}
                       className="p-2 text-gray-500 hover:text-gray-700"
                       aria-label="Increase quantity"
                     >
@@ -123,7 +126,7 @@ export default function CartPage() {
                     </span>
                     
                     <button
-                      onClick={() => removeItem(product.id)}
+                      onClick={() => removeItem(String(product.id))}
                       className="p-2 text-red-500 hover:text-red-700"
                       aria-label="Remove item"
                     >

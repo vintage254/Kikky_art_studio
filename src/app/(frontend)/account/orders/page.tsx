@@ -6,13 +6,14 @@ import { useRouter } from 'next/navigation';
 import type { Order, User } from '@/payload-types';
 import { format } from 'date-fns';
 import { Package, Eye } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // Define a type for order display
 type OrderWithDetails = Order & {
   formattedDate: string;
   statusColor: string;
   statusText: string;
+  orderNumber: string; // Add missing orderNumber property
 };
 
 export default function OrdersPage() {
