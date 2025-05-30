@@ -19,6 +19,9 @@ export default function resolveAliases(config) {
   // Add the @ alias to point to the src directory
   config.resolve.alias['@'] = path.resolve(__dirname, 'src');
   
+  // Add @payload-config alias
+  config.resolve.alias['@payload-config'] = path.resolve(__dirname, 'src/payload.config.ts');
+  
   // Add specific module resolutions for problematic imports
   config.resolve.alias['@/providers/HeaderTheme'] = path.resolve(__dirname, 'src/providers/HeaderTheme');
   config.resolve.alias['@/components/ProductCarousel'] = path.resolve(__dirname, 'src/components/ProductCarousel');
