@@ -2,10 +2,23 @@ import { NextRequest } from 'next/server';
 import { getPayload } from 'payload';
 import configPromise from '@payload-config';
 import { User } from '@/payload-types';
-import { cookies } from 'next/headers';
+// Client-compatible cookie handling
 
 // Key for storing auth token in cookies
 export const TOKEN_COOKIE_NAME = 'payload-token';
+
+// Helper function to get cookie value on the client side
+function getCookieValue(name: string): string | undefined {
+  if (typeof document === 'undefined') return undefined;
+  
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    const cookieValue = parts.pop()?.split(';').shift();
+    return cookieValue;
+  }
+  return undefined;
+}
 
 // Check if a user is logged in by validating their token
 export async function isLoggedIn(req?: NextRequest): Promise<boolean> {
@@ -27,10 +40,9 @@ export async function getLoggedInUser(req?: NextRequest): Promise<User | null> {
     if (req) {
       // If we have a request object (from middleware), get token from it
       token = req.cookies.get(TOKEN_COOKIE_NAME)?.value;
-    } else {
-      // Otherwise use the cookies API (from server components)
-      const cookieStore = await cookies();
-      token = cookieStore.get(TOKEN_COOKIE_NAME)?.value;
+    } else if (typeof document !== 'undefined') {
+      // Client-side cookie handling
+      token = getCookieValue(TOKEN_COOKIE_NAME);
     }
     
     if (!token) {

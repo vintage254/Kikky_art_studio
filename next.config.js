@@ -58,6 +58,17 @@ const nextConfig = {
     staticGenerationMaxConcurrency: parseInt(process.env.NEXT_STATIC_GENERATION_MAX_CONCURRENCY || '2'),
     staticGenerationMinPagesPerWorker: parseInt(process.env.NEXT_STATIC_GENERATION_MIN_PAGES_PER_WORKER || '25'),
   },
+  // Handle Cloudflare sockets for Neon PostgreSQL on Vercel
+  webpack: (config, { isServer, dev }) => {
+    // Add Cloudflare sockets polyfill for Neon PostgreSQL
+    if (!dev && isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        'cloudflare:sockets': false,
+      };
+    }
+    return config;
+  },
   // Add Turbopack config
   turbopack: {
     // Migrate the resolveAlias that Payload would add to experimental.turbo
