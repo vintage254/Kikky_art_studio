@@ -4,7 +4,7 @@
  * This adapter uses the @neondatabase/serverless driver instead of the standard pg driver
  * to enable compatibility with Vercel's serverless environment.
  */
-import { neon } from '@neondatabase/serverless';
+import { neon } from '@neondatabase/serverless/index';
 import { postgresAdapter } from '@payloadcms/db-postgres';
 
 /**

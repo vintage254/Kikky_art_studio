@@ -101,8 +101,8 @@ const nextConfig = {
         // Use our custom neon-serverless.js adapter
         config.resolve.alias = {
           ...config.resolve.alias,
-          // Replace pg with neon serverless
-          'pg': '@neondatabase/serverless',
+          // Replace pg with our custom adapter that provides a default export
+          'pg': path.resolve(__dirname, 'pg-default-export.js'),
         };
       }
     }

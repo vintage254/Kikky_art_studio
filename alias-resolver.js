@@ -34,6 +34,13 @@ export default function resolveAliases(config) {
   config.resolve.alias['@/components/animations/PageTransition'] = path.resolve(__dirname, 'src/components/animations/PageTransition');
   config.resolve.alias['@/providers/AnimationProvider'] = path.resolve(__dirname, 'src/providers/AnimationProvider');
   
+  // Add specific resolution for formatDateTime utility
+  config.resolve.alias['src/utilities/formatDateTime'] = path.resolve(__dirname, 'src/utilities/formatDateTime');
+  
+  // Ensure @neondatabase/serverless can be properly resolved
+  config.resolve.alias['@neondatabase/serverless'] = path.resolve(__dirname, 'node_modules/@neondatabase/serverless');
+  config.resolve.alias['@neondatabase/serverless/index'] = path.resolve(__dirname, 'node_modules/@neondatabase/serverless/index.js');
+  
   // Add fallback patterns for resolution
   config.resolve.fallback = {
     ...config.resolve.fallback,
