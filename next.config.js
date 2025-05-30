@@ -54,22 +54,24 @@ const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: true,
   redirects,
+  // External packages configuration for serverless components (moved from experimental in Next.js 15.3.0)
+  serverExternalPackages: [
+    'cloudflare:sockets',
+    '@neondatabase/serverless',
+  ],
+  
+  // Import customization (moved from experimental in Next.js 15.3.0)
+  modularizeImports: {
+    '@neondatabase/serverless': {
+      transform: '@neondatabase/serverless/{{member}}',
+    },
+  },
+  
   experimental: {
     // These settings should remain in experimental
     staticGenerationRetryCount: parseInt(process.env.NEXT_STATIC_GENERATION_RETRY_COUNT || '3'),
     staticGenerationMaxConcurrency: parseInt(process.env.NEXT_STATIC_GENERATION_MAX_CONCURRENCY || '2'),
     staticGenerationMinPagesPerWorker: parseInt(process.env.NEXT_STATIC_GENERATION_MIN_PAGES_PER_WORKER || '25'),
-    // External packages configuration for serverless components
-    serverComponentsExternalPackages: [
-      'cloudflare:sockets',
-      '@neondatabase/serverless',
-    ],
-    // Use the custom resolver for imports
-    modularizeImports: {
-      '@neondatabase/serverless': {
-        transform: '@neondatabase/serverless/{{member}}',
-      },
-    },
   },
   // Handle Node.js modules for PostgreSQL on Vercel
   webpack: (config, { isServer, dev }) => {
