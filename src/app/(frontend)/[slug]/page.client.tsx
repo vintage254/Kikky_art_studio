@@ -1,10 +1,10 @@
 'use client'
-import { useHeaderTheme } from '@/providers/HeaderTheme'
+import { useHeaderTheme } from '@/providers/HeaderTheme/index'
 import React, { useEffect } from 'react'
 import classes from './index.module.scss'
 import type { Category as PayloadCategory, Product, CallToActionBlock as CTABlockType, Media } from '@/payload-types'
-import { ProductCarousel } from '@/components/ProductCarousel'
-import { AboutSection } from '@/components/AboutSection'
+import { ProductCarousel } from '@/components/ProductCarousel/index'
+import { AboutSection } from '@/components/AboutSection/index'
 import Image from 'next/image'
 import Link from 'next/link'
 // Import icons individually to avoid barrel optimization issues
