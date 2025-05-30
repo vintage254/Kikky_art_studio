@@ -1,16 +1,18 @@
 {
-  "buildCommand": "next build",
-  "installCommand": "pnpm install",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install sharp@0.32.6 && NODE_ENV=production npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
   "regions": ["iad1"],
   "env": {
     "VERCEL": "true",
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "SHARP_IGNORE_GLOBAL_LIBVIPS": "1"
   },
   "build": {
     "env": {
-      "NEXT_TELEMETRY_DISABLED": "1"
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "SHARP_IGNORE_GLOBAL_LIBVIPS": "1"
     }
   }
 }

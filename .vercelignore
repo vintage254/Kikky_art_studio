@@ -1,0 +1,27 @@
+# Ignore development files
+node_modules
+.git
+.github
+.vscode
+
+# Ignore test files
+__tests__
+test
+tests
+
+# Ignore build artifacts
+.next/cache
+
+# Ignore documentation
+docs
+README.md
+CHANGELOG.md
+LICENSE
+
+# Ignore configuration files not needed for deployment
+.eslintrc
+.prettierrc
+tsconfig.tsbuildinfo
+
+# Ignore media and large files not needed for deployment
+*.log
