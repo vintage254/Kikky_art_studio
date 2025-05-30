@@ -1,10 +1,9 @@
 import { withPayload } from '@payloadcms/next/withPayload'
-
 import redirects from './redirects.js'
 // Import using ES Module pattern
 import neonResolver from './neon-module-resolver.js'
 // Import the alias resolver
-const aliasResolver = require('./alias-resolver.js')
+import aliasResolver from './alias-resolver.js'
 
 const NEXT_PUBLIC_SERVER_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
@@ -112,14 +111,14 @@ const nextConfig = {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        'crypto': require.resolve('crypto-browserify'),
-        'stream': require.resolve('stream-browserify'),
-        'util': require.resolve('util'),
-        'events': require.resolve('events'),
+        'crypto': 'crypto-browserify',
+        'stream': 'stream-browserify',
+        'util': 'util',
+        'events': 'events',
         'fs': false,
-        'path': require.resolve('path-browserify'),
-        'buffer': require.resolve('buffer'),
-        'os': require.resolve('os-browserify'),
+        'path': 'path-browserify',
+        'buffer': 'buffer',
+        'os': 'os-browserify',
         'tls': false,
         'net': false
       };

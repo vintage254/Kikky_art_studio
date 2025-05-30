@@ -3,10 +3,10 @@
  * This script helps resolve @/ path aliases during the build process
  */
 
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
 
-module.exports = function resolveAliases(config) {
+export default function resolveAliases(config) {
   // Ensure the resolve.alias object exists
   if (!config.resolve) config.resolve = {};
   if (!config.resolve.alias) config.resolve.alias = {};
@@ -29,7 +29,7 @@ module.exports = function resolveAliases(config) {
   // Add fallback patterns for resolution
   config.resolve.fallback = {
     ...config.resolve.fallback,
-    path: require.resolve('path-browserify'),
+    path: 'path-browserify',
   };
   
   return config;
