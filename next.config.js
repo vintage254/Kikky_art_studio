@@ -1,5 +1,6 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 import redirects from './redirects.js'
+import path from 'path'
 // Import using ES Module pattern
 import neonResolver from './neon-module-resolver.js'
 // Import the alias resolver
