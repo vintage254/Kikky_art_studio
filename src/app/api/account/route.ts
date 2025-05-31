@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPayload } from 'payload';
 import configPromise from '@payload-config';
-import { getLoggedInUser } from '@/utilities/auth';
+import { getLoggedInUser } from '@/utilities/auth/server';
 
 export async function GET(request: NextRequest) {
   try {

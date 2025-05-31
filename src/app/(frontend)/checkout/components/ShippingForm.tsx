@@ -4,7 +4,7 @@ import React from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { getLoggedInUser } from '@/utilities/auth';
+import { getLoggedInUser } from '@/utilities/auth/client';
 import { useEffect, useState } from 'react';
 
 // Form validation schema

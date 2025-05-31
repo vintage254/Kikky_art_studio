@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { loginUser } from '@/utilities/auth';
+import { loginUser } from '@/utilities/auth/client';
 import { z } from 'zod';
 import { Gutter } from '@/components/ui/Gutter';
 import { Button } from '@/components/ui/button';
