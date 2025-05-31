@@ -3,8 +3,6 @@ import type { Metadata } from 'next/types'
 import { CollectionArchive } from '@/components/CollectionArchive'
 import { PageRange } from '@/components/PageRange'
 import { Pagination } from '@/components/Pagination'
-import configPromise from '@payload-config'
-import { getPayload } from 'payload'
 import React from 'react'
 import PageClient from './page.client'
 
@@ -12,20 +10,12 @@ export const dynamic = 'force-static'
 export const revalidate = 600
 
 export default async function Page() {
-  const payload = await getPayload({ config: configPromise })
-
-  const posts = await payload.find({
-    collection: 'posts',
-    depth: 1,
-    limit: 12,
-    overrideAccess: false,
-    select: {
-      title: true,
-      slug: true,
-      categories: true,
-      meta: true,
-    },
-  })
+  // Use the server API endpoint instead of direct Payload import
+  const apiUrl = new URL('/api/posts', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
+  apiUrl.searchParams.set('limit', '12')
+  
+  const response = await fetch(apiUrl.toString(), { next: { revalidate: 600 } })
+  const posts = await response.json()
 
   return (
     <div className="pb-24">

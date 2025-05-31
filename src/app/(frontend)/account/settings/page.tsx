@@ -6,9 +6,6 @@ import type { User } from '@/payload-types';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Check } from 'lucide-react';
-import { getPayload } from 'payload';
-import configPromise from '@payload-config';
-import { getLoggedInUser } from '@/utilities/auth';
 
 // Form validation schema
 const profileSchema = z.object({

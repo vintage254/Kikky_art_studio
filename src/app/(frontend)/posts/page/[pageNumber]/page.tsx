@@ -3,8 +3,6 @@ import type { Metadata } from 'next/types'
 import { CollectionArchive } from '@/components/CollectionArchive'
 import { PageRange } from '@/components/PageRange'
 import { Pagination } from '@/components/Pagination'
-import configPromise from '@payload-config'
-import { getPayload } from 'payload'
 import React from 'react'
 import PageClient from './page.client'
 import { notFound } from 'next/navigation'
@@ -19,19 +17,18 @@ type Args = {
 
 export default async function Page({ params: paramsPromise }: Args) {
   const { pageNumber } = await paramsPromise
-  const payload = await getPayload({ config: configPromise })
 
   const sanitizedPageNumber = Number(pageNumber)
 
   if (!Number.isInteger(sanitizedPageNumber)) notFound()
 
-  const posts = await payload.find({
-    collection: 'posts',
-    depth: 1,
-    limit: 12,
-    page: sanitizedPageNumber,
-    overrideAccess: false,
-  })
+  // Use the API endpoint instead of direct Payload import
+  const apiUrl = new URL('/api/posts', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
+  apiUrl.searchParams.set('page', sanitizedPageNumber.toString())
+  apiUrl.searchParams.set('limit', '12')
+  
+  const response = await fetch(apiUrl.toString(), { next: { revalidate: 600 } })
+  const posts = await response.json()
 
   return (
     <div className="pb-24">
@@ -70,11 +67,13 @@ export async function generateMetadata({ params: paramsPromise }: Args): Promise
 }
 
 export async function generateStaticParams() {
-  const payload = await getPayload({ config: configPromise })
-  const { totalDocs } = await payload.count({
-    collection: 'posts',
-    overrideAccess: false,
-  })
+  // Use the API endpoint instead of direct Payload import
+  const apiUrl = new URL('/api/posts', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
+  apiUrl.searchParams.set('limit', '1') // Just need count information, not actual posts
+  
+  const response = await fetch(apiUrl.toString())
+  const result = await response.json()
+  const totalDocs = result.totalDocs
 
   const totalPages = Math.ceil(totalDocs / 10)
 

@@ -8,7 +8,6 @@ import { useHeaderTheme } from '@/providers/HeaderTheme'
 import { Product } from '@/payload-types'
 import { getClientSideURL } from '@/utilities/getURL'
 import RichText from '@/components/RichText'
-import payload from 'payload'
 
 // Define props for the ProductDetailClient component
 interface ProductDetailClientProps {

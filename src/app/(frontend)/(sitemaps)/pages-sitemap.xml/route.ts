@@ -1,33 +1,37 @@
 import { getServerSideSitemap } from 'next-sitemap'
-import { getPayload } from 'payload'
-import config from '@payload-config'
 import { unstable_cache } from 'next/cache'
+
+// Define types for page objects
+interface PageDoc {
+  slug?: string;
+  updatedAt?: string;
+}
 
 const getPagesSitemap = unstable_cache(
   async () => {
-    const payload = await getPayload({ config })
+    // Use fetch API instead of direct Payload import
     const SITE_URL =
       process.env.NEXT_PUBLIC_SERVER_URL ||
       process.env.VERCEL_PROJECT_PRODUCTION_URL ||
       'https://example.com'
-
-    const results = await payload.find({
-      collection: 'pages',
-      overrideAccess: false,
-      draft: false,
-      depth: 0,
-      limit: 1000,
-      pagination: false,
-      where: {
-        _status: {
-          equals: 'published',
-        },
-      },
-      select: {
-        slug: true,
-        updatedAt: true,
-      },
-    })
+    
+    // Call the pages API with appropriate parameters
+    const apiUrl = new URL('/api/pages', SITE_URL)
+    apiUrl.searchParams.set('limit', '1000')
+    apiUrl.searchParams.set('select', 'slug,updatedAt')
+    apiUrl.searchParams.set('where', JSON.stringify({
+      _status: {
+        equals: 'published'
+      }
+    }))
+    
+    const response = await fetch(apiUrl.toString())
+    if (!response.ok) {
+      console.error('Failed to fetch pages for sitemap')
+      return []
+    }
+    
+    const results = await response.json()
 
     const dateFallback = new Date().toISOString()
 
@@ -44,8 +48,8 @@ const getPagesSitemap = unstable_cache(
 
     const sitemap = results.docs
       ? results.docs
-          .filter((page) => Boolean(page?.slug))
-          .map((page) => {
+          .filter((page: PageDoc) => Boolean(page?.slug))
+          .map((page: PageDoc) => {
             return {
               loc: page?.slug === 'home' ? `${SITE_URL}/` : `${SITE_URL}/${page?.slug}`,
               lastmod: page.updatedAt || dateFallback,

@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 
 import { PayloadRedirects } from '@/components/PayloadRedirects'
-import configPromise from '@payload-config'
-import { getPayload, type RequiredDataFromCollectionSlug } from 'payload'
 import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
 import { homeStatic } from '@/endpoints/seed/home-static'
@@ -17,17 +15,12 @@ import { Gutter } from '@/components/ui/Gutter'
 import classes from './index.module.scss'
 
 export async function generateStaticParams() {
-  const payload = await getPayload({ config: configPromise })
-  const pages = await payload.find({
-    collection: 'pages',
-    draft: false,
-    limit: 1000,
-    overrideAccess: false,
-    pagination: false,
-    select: {
-      slug: true,
-    },
-  })
+  // Use the API endpoint to fetch pages instead of direct Payload import
+  const apiUrl = new URL('/api/pages', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
+  apiUrl.searchParams.set('limit', '1000')
+  
+  const response = await fetch(apiUrl.toString())
+  const pages = await response.json()
 
   const params = pages.docs
     ?.filter((doc) => {
@@ -200,20 +193,25 @@ export async function generateMetadata({ params: paramsPromise }: Args): Promise
 const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
   const { isEnabled: draft } = await draftMode()
 
-  const payload = await getPayload({ config: configPromise })
-
-  const result = await payload.find({
-    collection: 'pages',
-    draft,
-    limit: 1,
-    pagination: false,
-    overrideAccess: draft,
-    where: {
-      slug: {
-        equals: slug,
-      },
-    },
-  })
-
-  return result.docs?.[0] || null
+  // Use the API endpoint to fetch page data instead of direct Payload import
+  const apiUrl = new URL('/api/pages', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
+  apiUrl.searchParams.set('slug', slug)
+  apiUrl.searchParams.set('limit', '1')
+  apiUrl.searchParams.set('draft', draft ? 'true' : 'false')
+  
+  try {
+    const response = await fetch(apiUrl.toString(), {
+      next: { tags: [`page-${slug}`] }
+    })
+    
+    if (!response.ok) {
+      return null
+    }
+    
+    const result = await response.json()
+    return result.docs?.[0] || null
+  } catch (error) {
+    console.error(`Error fetching page with slug ${slug}:`, error)
+    return null
+  }
 })

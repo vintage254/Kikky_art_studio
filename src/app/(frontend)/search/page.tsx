@@ -1,8 +1,6 @@
 import type { Metadata } from 'next/types'
 
 import { CollectionArchive } from '@/components/CollectionArchive'
-import configPromise from '@payload-config'
-import { getPayload } from 'payload'
 import React from 'react'
 import { Search } from '@/search/Component'
 import PageClient from './page.client'
@@ -15,49 +13,15 @@ type Args = {
 }
 export default async function Page({ searchParams: searchParamsPromise }: Args) {
   const { q: query } = await searchParamsPromise
-  const payload = await getPayload({ config: configPromise })
-
-  const posts = await payload.find({
-    collection: 'search',
-    depth: 1,
-    limit: 12,
-    select: {
-      title: true,
-      slug: true,
-      categories: true,
-      meta: true,
-    },
-    // pagination: false reduces overhead if you don't need totalDocs
-    pagination: false,
-    ...(query
-      ? {
-          where: {
-            or: [
-              {
-                title: {
-                  like: query,
-                },
-              },
-              {
-                'meta.description': {
-                  like: query,
-                },
-              },
-              {
-                'meta.title': {
-                  like: query,
-                },
-              },
-              {
-                slug: {
-                  like: query,
-                },
-              },
-            ],
-          },
-        }
-      : {}),
-  })
+  
+  // Use the server API endpoint instead of direct Payload import
+  const apiUrl = new URL('/api/search', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
+  if (query) {
+    apiUrl.searchParams.set('q', query)
+  }
+  
+  const response = await fetch(apiUrl.toString(), { next: { tags: ['search'] } })
+  const { docs: posts } = await response.json()
 
   return (
     <div className="pt-24 pb-24">

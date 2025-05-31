@@ -1,7 +1,5 @@
 import React from 'react'
 import { Metadata } from 'next'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
 import { draftMode } from 'next/headers'
 import { PayloadRedirects } from '@/components/PayloadRedirects'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
@@ -12,16 +10,13 @@ import { ProductHero } from './ProductHero'
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const payload = await getPayload({ config: configPromise })
-    const productsPage = await payload.find({
-      collection: 'pages',
-      where: {
-        slug: {
-          equals: 'products',
-        },
-      },
-      limit: 1,
-    })
+    // Use API endpoint to fetch page data
+    const pageUrl = new URL('/api/pages', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
+    pageUrl.searchParams.set('slug', 'products')
+    pageUrl.searchParams.set('limit', '1')
+    
+    const response = await fetch(pageUrl.toString())
+    const productsPage = await response.json()
 
     const doc = productsPage.docs?.[0] || null
     return generateMeta({ doc })
@@ -37,51 +32,34 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ProductsPage() {
   console.log('Rendering custom Products page')
   const { isEnabled: draft } = await draftMode()
-  const payload = await getPayload({ config: configPromise })
   
-  // Fetch the Products page data - check both lowercase and capitalized versions
-  let productsPageData = await payload.find({
-    collection: 'pages',
-    where: {
-      slug: {
-        equals: 'products',
-      },
-    },
-    limit: 1,
-    depth: 2, // Ensure we get related data
-  })
+  // Fetch the Products page data using API endpoint
+  const pageUrl = new URL('/api/pages', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
+  pageUrl.searchParams.set('slug', 'products')
+  pageUrl.searchParams.set('limit', '1')
+  pageUrl.searchParams.set('depth', '2')
+  
+  let response = await fetch(pageUrl.toString(), { next: { tags: ['products-page'] } })
+  let productsPageData = await response.json()
   
   // If we don't find it with lowercase, try with capitalized first letter
   if (productsPageData.docs.length === 0) {
-    productsPageData = await payload.find({
-      collection: 'pages',
-      where: {
-        slug: {
-          equals: 'Products',
-        },
-      },
-      limit: 1,
-      depth: 2,
-    })
+    pageUrl.searchParams.set('slug', 'Products')
+    response = await fetch(pageUrl.toString(), { next: { tags: ['products-page'] } })
+    productsPageData = await response.json()
   }
 
-  // Get all categories
-  const categoriesData = await payload.find({
-    collection: 'categories',
-    limit: 100,
-  })
+  // Get all categories using API endpoint
+  const categoriesUrl = new URL('/api/categories', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
+  categoriesUrl.searchParams.set('limit', '100')
+  const categoriesResponse = await fetch(categoriesUrl.toString(), { next: { tags: ['categories'] } })
+  const categoriesData = await categoriesResponse.json()
 
-  // Get all products
-  const productsData = await payload.find({
-    collection: 'products',
-    where: {
-      isActive: {
-        equals: true,
-      },
-    },
-    limit: 100,
-    depth: 1, // Get related data like categories
-  })
+  // Get all products using API endpoint
+  const productsUrl = new URL('/api/products', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
+  productsUrl.searchParams.set('limit', '100')
+  const productsResponse = await fetch(productsUrl.toString(), { next: { tags: ['products'] } })
+  const productsData = await productsResponse.json()
 
   // Ensure we have proper data structures even if API returns unexpected results
   const products = (productsData?.docs && Array.isArray(productsData.docs)) ? productsData.docs : []

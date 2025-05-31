@@ -2,8 +2,6 @@ import type { Metadata } from 'next'
 
 import { RelatedPosts } from '@/blocks/RelatedPosts/Component'
 import { PayloadRedirects } from '@/components/PayloadRedirects'
-import configPromise from '@payload-config'
-import { getPayload } from 'payload'
 import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
 import RichText from '@/components/RichText'
@@ -16,17 +14,12 @@ import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 
 export async function generateStaticParams() {
-  const payload = await getPayload({ config: configPromise })
-  const posts = await payload.find({
-    collection: 'posts',
-    draft: false,
-    limit: 1000,
-    overrideAccess: false,
-    pagination: false,
-    select: {
-      slug: true,
-    },
-  })
+  // Use the API endpoint instead of direct Payload import
+  const apiUrl = new URL('/api/posts', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
+  apiUrl.searchParams.set('limit', '1000')
+  
+  const response = await fetch(apiUrl.toString())
+  const posts = await response.json()
 
   const params = posts.docs.map(({ slug }) => {
     return { slug }
@@ -85,20 +78,23 @@ export async function generateMetadata({ params: paramsPromise }: Args): Promise
 const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
   const { isEnabled: draft } = await draftMode()
 
-  const payload = await getPayload({ config: configPromise })
-
-  const result = await payload.find({
-    collection: 'posts',
-    draft,
-    limit: 1,
-    overrideAccess: draft,
-    pagination: false,
-    where: {
-      slug: {
-        equals: slug,
-      },
-    },
-  })
-
-  return result.docs?.[0] || null
+  // Use the API endpoint instead of direct Payload import
+  const apiUrl = new URL('/api/posts', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
+  apiUrl.searchParams.set('slug', slug)
+  
+  try {
+    const response = await fetch(apiUrl.toString(), { 
+      next: { tags: [`post-${slug}`] }
+    })
+    
+    if (!response.ok) {
+      return null
+    }
+    
+    // Single post returns the post object directly
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching post:', error)
+    return null
+  }
 })

@@ -1,7 +1,5 @@
 import React, { cache } from 'react'
 import { Metadata } from 'next'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
 import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { PayloadRedirects } from '@/components/PayloadRedirects'
@@ -13,19 +11,21 @@ import ProductDetailClient from './product-detail.client'
 // Use a cache function to fetch the product by slug
 const getProductBySlug = cache(async (slug: string) => {
   try {
-    const payload = await getPayload({ config: configPromise })
-    const productData = await payload.find({
-      collection: 'products',
-      where: {
-        slug: {
-          equals: slug,
-        },
-      },
-      limit: 1,
-      depth: 2, // Get related data like categories
+    // Use the API endpoint instead of direct Payload import
+    const apiUrl = new URL(`/api/products/${slug}`, process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
+    
+    const response = await fetch(apiUrl.toString(), {
+      next: { tags: [`product-${slug}`] }
     })
-
-    return productData.docs?.[0] || null
+    
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null
+      }
+      throw new Error(`Failed to fetch product: ${response.statusText}`)
+    }
+    
+    return await response.json()
   } catch (error) {
     console.error(`Error fetching product with slug ${slug}:`, error)
     return null

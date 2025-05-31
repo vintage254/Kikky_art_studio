@@ -6,8 +6,6 @@ import { CheckCircle, AlertCircle } from 'lucide-react';
 import { Gutter } from '@/components/ui/Gutter';
 import Link from 'next/link';
 import { useCart } from '@/providers/CartProvider';
-import { getPayload } from 'payload';
-import configPromise from '@payload-config';
 
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams();
@@ -31,11 +29,9 @@ export default function CheckoutSuccessPage() {
           setLoading(false);
           return;
         }
-
-        // Initialize Payload
-        const payload = await getPayload({ config: configPromise });
         
-        // Verify the Stripe session and create an order
+        // Verify the Stripe session and create an order via API route
+        // The server-side logic is handled in /api/checkout/verify
         const response = await fetch('/api/checkout/verify', {
           method: 'POST',
           headers: {
