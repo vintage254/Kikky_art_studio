@@ -111,6 +111,9 @@ const nextConfig = {
           'pg': path.resolve(__dirname, 'pg-default-export.js'),
           // Replace file-type with our custom adapter that provides fileTypeFromFile
           'file-type': path.resolve(__dirname, 'file-type-adapter.js'),
+          // Add polyfills for Node.js core modules
+          'dns': path.resolve(__dirname, 'dns-polyfill.js'),
+          'child_process': path.resolve(__dirname, 'child-process-polyfill.js'),
         };
       }
     }
