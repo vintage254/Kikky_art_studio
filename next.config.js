@@ -90,6 +90,20 @@ const nextConfig = {
     // Apply custom alias resolver for path aliases
     config = aliasResolver(config);
 
+    // Provide empty module for Node.js built-ins that don't exist in browsers
+    const emptyModule = path.resolve(__dirname, 'empty-module.js');
+
+    // Modify config for both server and client builds
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      // Core Node.js modules that are referenced in node_modules
+      'dns': emptyModule,
+      'child_process': emptyModule,
+      'fs': emptyModule,
+      'net': emptyModule,
+      'tls': emptyModule,
+    };
+
     // Handle Node-specific modules in server build
     if (isServer) {
       // Mark these modules as external to prevent bundling
@@ -111,14 +125,11 @@ const nextConfig = {
           'pg': path.resolve(__dirname, 'pg-default-export.js'),
           // Replace file-type with our custom adapter that provides fileTypeFromFile
           'file-type': path.resolve(__dirname, 'file-type-adapter.js'),
-          // Add polyfills for Node.js core modules
-          'dns': path.resolve(__dirname, 'dns-polyfill.js'),
-          'child_process': path.resolve(__dirname, 'child-process-polyfill.js'),
         };
       }
     }
 
-    // Add polyfills for missing Node.js modules
+    // Add polyfills for missing Node.js modules in client code
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -126,12 +137,9 @@ const nextConfig = {
         'stream': 'stream-browserify',
         'util': 'util',
         'events': 'events',
-        'fs': false,
         'path': 'path-browserify',
         'buffer': 'buffer',
-        'os': 'os-browserify',
-        'tls': false,
-        'net': false
+        'os': 'os-browserify'
       };
     }
     
