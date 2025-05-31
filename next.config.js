@@ -127,13 +127,13 @@ const nextConfig = {
         'fs': false,
         'child_process': false,
         // Provide browser-compatible implementations for common modules
-        'crypto': require.resolve('crypto-browserify'),
-        'stream': require.resolve('stream-browserify'),
-        'util': require.resolve('util'),
-        'events': require.resolve('events'),
-        'path': require.resolve('path-browserify'),
-        'buffer': require.resolve('buffer'),
-        'os': require.resolve('os-browserify')
+        'crypto': 'crypto-browserify',
+        'stream': 'stream-browserify',
+        'util': 'util',
+        'events': 'events',
+        'path': 'path-browserify',
+        'buffer': 'buffer',
+        'os': 'os-browserify'
       };
     }
     
@@ -142,8 +142,8 @@ const nextConfig = {
       // Add plugin to ignore require statements for Node.js modules
       config.plugins = [...config.plugins,
         // Add environment variables to help packages detect browser environment
-        new config.webpack.DefinePlugin({
-          'process.env.NEXT_RUNTIME': JSON.stringify('browser')
+        new config.webpack.ProvidePlugin({
+          process: 'process/browser'
         })
       ];
     }
