@@ -111,6 +111,19 @@ const nextConfig = {
           'pg': path.resolve(__dirname, 'pg-default-export.js'),
           // Replace file-type with our custom adapter that provides fileTypeFromFile
           'file-type': path.resolve(__dirname, 'file-type-adapter.js'),
+          // Add polyfills for Node.js modules required by dependencies
+          'worker_threads': path.resolve(__dirname, 'worker-threads-polyfill.js'),
+          'readline': path.resolve(__dirname, 'readline-polyfill.js'),
+          'cloudflare:sockets': path.resolve(__dirname, 'cloudflare-sockets-polyfill.js'),
+          // Handle node: protocol imports
+          'node:assert': 'assert',
+          'node:buffer': 'buffer',
+          'node:crypto': 'crypto-browserify',
+          'node:events': 'events',
+          'node:fs': false,
+          'node:path': 'path-browserify',
+          'node:stream': 'stream-browserify',
+          'node:util': 'util'
         };
       }
     }
@@ -126,6 +139,8 @@ const nextConfig = {
         'tls': false,
         'fs': false,
         'child_process': false,
+        'worker_threads': false,
+        'readline': false,
         // Provide browser-compatible implementations for common modules
         'crypto': 'crypto-browserify',
         'stream': 'stream-browserify',
@@ -133,7 +148,8 @@ const nextConfig = {
         'events': 'events',
         'path': 'path-browserify',
         'buffer': 'buffer',
-        'os': 'os-browserify'
+        'os': 'os-browserify',
+        'assert': 'assert'
       };
     }
     
