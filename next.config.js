@@ -89,22 +89,8 @@ const nextConfig = {
 
     // Apply custom alias resolver for path aliases
     config = aliasResolver(config);
-
-    // Provide empty module for Node.js built-ins that don't exist in browsers
-    const emptyModule = path.resolve(__dirname, 'empty-module.js');
-
-    // Modify config for both server and client builds
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      // Core Node.js modules that are referenced in node_modules
-      'dns': emptyModule,
-      'child_process': emptyModule,
-      'fs': emptyModule,
-      'net': emptyModule,
-      'tls': emptyModule,
-    };
-
-    // Handle Node-specific modules in server build
+    
+    // Handle Node-specific modules
     if (isServer) {
       // Mark these modules as external to prevent bundling
       config.externals = [...(config.externals || []), 
@@ -129,18 +115,37 @@ const nextConfig = {
       }
     }
 
-    // Add polyfills for missing Node.js modules in client code
+    // For client-side builds
     if (!isServer) {
+      // Handle Node.js built-in modules properly
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        'crypto': 'crypto-browserify',
-        'stream': 'stream-browserify',
-        'util': 'util',
-        'events': 'events',
-        'path': 'path-browserify',
-        'buffer': 'buffer',
-        'os': 'os-browserify'
+        // Provide empty implementations for Node.js modules
+        'dns': false,
+        'net': false,
+        'tls': false,
+        'fs': false,
+        'child_process': false,
+        // Provide browser-compatible implementations for common modules
+        'crypto': require.resolve('crypto-browserify'),
+        'stream': require.resolve('stream-browserify'),
+        'util': require.resolve('util'),
+        'events': require.resolve('events'),
+        'path': require.resolve('path-browserify'),
+        'buffer': require.resolve('buffer'),
+        'os': require.resolve('os-browserify')
       };
+    }
+    
+    // Ensure packages that use these Node.js modules don't break the client build
+    if (!isServer) {
+      // Add plugin to ignore require statements for Node.js modules
+      config.plugins = [...config.plugins,
+        // Add environment variables to help packages detect browser environment
+        new config.webpack.DefinePlugin({
+          'process.env.NEXT_RUNTIME': JSON.stringify('browser')
+        })
+      ];
     }
     
     return config;
