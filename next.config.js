@@ -6,7 +6,6 @@ import { fileURLToPath } from 'url'
 import neonResolver from './neon-module-resolver.js'
 // Import the alias resolver
 import aliasResolver from './alias-resolver.js'
-import webpack from 'webpack'; // Import webpack for plugins
 
 // Create __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url)
@@ -140,13 +139,8 @@ const nextConfig = {
     
     // Ensure packages that use these Node.js modules don't break the client build
     if (!isServer) {
-      // Add plugin to ignore require statements for Node.js modules
-      config.plugins = [...config.plugins,
-        // Add environment variables to help packages detect browser environment
-        new webpack.ProvidePlugin({
-          process: 'process/browser'
-        })
-      ];
+      // Set process.browser flag for client-side code
+      config.plugins = [...config.plugins];
     }
     
     return config;
