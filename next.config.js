@@ -92,40 +92,39 @@ const nextConfig = {
     
     // Handle Node-specific modules
     if (isServer) {
-      // Mark these modules as external to prevent bundling
+      // Make certain Node.js modules external on the server (like fs, path, etc.)
       config.externals = [...(config.externals || []), 
-        // Tell webpack these are external modules that should not be bundled
-        'cloudflare:sockets',
+        // External modules for server-side only
         'pg-native',
-        'pg-cloudflare',
-        // Treat all node: protocol imports as external
-        /^node:/,
       ];
-      
-      // For Neon PostgreSQL support on Vercel
-      if (process.env.VERCEL) {
-        // Use our custom adapters
-        config.resolve.alias = {
-          ...config.resolve.alias,
-          // Replace pg with our custom adapter that provides a default export
-          'pg': path.resolve(__dirname, 'pg-default-export.js'),
-          // Replace file-type with our custom adapter that provides fileTypeFromFile
-          'file-type': path.resolve(__dirname, 'file-type-adapter.js'),
-          // Add polyfills for Node.js modules required by dependencies
-          'worker_threads': path.resolve(__dirname, 'worker-threads-polyfill.js'),
-          'readline': path.resolve(__dirname, 'readline-polyfill.js'),
-          'cloudflare:sockets': path.resolve(__dirname, 'cloudflare-sockets-polyfill.js'),
-          // Handle node: protocol imports
-          'node:assert': 'assert',
-          'node:buffer': 'buffer',
-          'node:crypto': 'crypto-browserify',
-          'node:events': 'events',
-          'node:fs': false,
-          'node:path': 'path-browserify',
-          'node:stream': 'stream-browserify',
-          'node:util': 'util'
-        };
-      }
+    }
+    
+    // For Neon PostgreSQL support on Vercel - apply to both server and client
+    if (process.env.VERCEL) {
+      // Use our custom adapters
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        // Replace pg with our custom adapter that provides a default export
+        'pg': path.resolve(__dirname, 'pg-default-export.js'),
+        // Replace file-type with our custom adapter that provides fileTypeFromFile
+        'file-type': path.resolve(__dirname, 'file-type-adapter.js'),
+        // Add polyfills for Node.js modules required by dependencies
+        'worker_threads': path.resolve(__dirname, 'worker-threads-polyfill.js'),
+        'readline': path.resolve(__dirname, 'readline-polyfill.js'),
+        // Handle Cloudflare sockets with a custom resolver
+        'cloudflare:sockets': path.resolve(__dirname, 'cloudflare-sockets-polyfill.js'),
+        // Handle node: protocol imports with explicit polyfills
+        'node:assert': path.resolve(__dirname, 'node-assert-polyfill.js'),
+        'node:fs': path.resolve(__dirname, 'node-fs-polyfill.js'),
+        'node:module': path.resolve(__dirname, 'node-module-polyfill.js'),
+        'node:os': path.resolve(__dirname, 'node-os-polyfill.js'),
+        'node:buffer': 'buffer',
+        'node:crypto': 'crypto-browserify',
+        'node:events': 'events',
+        'node:path': 'path-browserify',
+        'node:stream': 'stream-browserify',
+        'node:util': 'util'
+      };
     }
 
     // For client-side builds
