@@ -2,10 +2,8 @@ import { NextRequest } from 'next/server';
 import { getPayload } from 'payload';
 import configPromise from '@payload-config';
 import { User } from '@/payload-types';
+import { TOKEN_COOKIE_NAME } from './constants';
 // Client-compatible cookie handling
-
-// Key for storing auth token in cookies
-export const TOKEN_COOKIE_NAME = 'payload-token';
 
 // Helper function to get cookie value on the client side
 function getCookieValue(name: string): string | undefined {

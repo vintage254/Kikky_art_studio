@@ -104,11 +104,13 @@ const nextConfig = {
       
       // For Neon PostgreSQL support on Vercel
       if (process.env.VERCEL) {
-        // Use our custom neon-serverless.js adapter
+        // Use our custom adapters
         config.resolve.alias = {
           ...config.resolve.alias,
           // Replace pg with our custom adapter that provides a default export
           'pg': path.resolve(__dirname, 'pg-default-export.js'),
+          // Replace file-type with our custom adapter that provides fileTypeFromFile
+          'file-type': path.resolve(__dirname, 'file-type-adapter.js'),
         };
       }
     }

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPayload } from 'payload';
-import { isLoggedIn, TOKEN_COOKIE_NAME } from './utilities/auth/index';
+import { TOKEN_COOKIE_NAME } from './utilities/auth/constants';
 
 // Define protected routes that require authentication
 const PROTECTED_ROUTES = [
@@ -20,7 +19,8 @@ export async function middleware(request: NextRequest) {
   );
   
   if (isProtectedRoute) {
-    // First, directly check for the token cookie
+    // Only check for token existence in Edge Runtime
+    // The actual token validation will happen in the page component
     const tokenCookie = request.cookies.get(TOKEN_COOKIE_NAME);
     
     // If no token cookie exists, redirect immediately
