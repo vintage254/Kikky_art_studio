@@ -1,55 +1,55 @@
-# Payload Website Template
+# Kikky Art Studio E-commerce Website
 
-This is the official [Payload Website Template](https://github.com/payloadcms/payload/blob/main/templates/website). Use it to power websites, blogs, or portfolios from small to enterprise. This repo includes a fully-working backend, enterprise-grade admin panel, and a beautifully designed, production-ready website.
+A fully-featured e-commerce platform for Kikky Art Studio, built with Payload CMS and Next.js. This application provides a complete solution for selling art products online with an enterprise-grade admin panel and a beautifully designed, production-ready website.
 
-This template is right for you if you are working on:
+## About Kikky Art Studio
 
-- A personal or enterprise-grade website, blog, or portfolio
-- A content publishing platform with a fully featured publication workflow
-- Exploring the capabilities of Payload
+Kikky Art Studio is a premium art retailer offering unique and beautiful art pieces to customers worldwide. This e-commerce platform has been custom-built to showcase and sell the studio's artwork through a seamless online shopping experience.
 
-Core features:
+## Core Features:
 
-- [Pre-configured Payload Config](#how-it-works)
-- [Authentication](#users-authentication)
+- [Complete E-commerce Solution](#e-commerce-features)
+- [Product Management](#product-management)
+- [Shopping Cart & Checkout](#shopping-cart--checkout)
+- [Order Processing](#order-processing)
+- [Stripe Integration](#stripe-integration)
+- [User Authentication](#users-authentication)
 - [Access Control](#access-control)
 - [Layout Builder](#layout-builder)
 - [Draft Preview](#draft-preview)
 - [Live Preview](#live-preview)
 - [On-demand Revalidation](#on-demand-revalidation)
-- [SEO](#seo)
-- [Search](#search)
-- [Redirects](#redirects)
-- [Jobs and Scheduled Publishing](#jobs-and-scheduled-publish)
-- [Website](#website)
+- [SEO Optimization](#seo)
+- [Search Functionality](#search)
+- [Multi-currency Support](#multi-currency-support)
 
-## Quick Start
+## Development Setup
 
-To spin up this example locally, follow these steps:
+To set up the Kikky Art Studio website locally for development, follow these steps:
 
-### Clone
+### Prerequisites
 
-If you have not done so already, you need to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+- Node.js (v18.20.2 or >=20.9.0)
+- PNPM (v9 or v10)
+- PostgreSQL database
 
-#### Method 1 (recommended)
+### Installation
 
-Go to Payload Cloud and [clone this template](https://payloadcms.com/new/clone/website). This will create a new repository on your GitHub account with this template's code which you can then clone to your own machine.
-
-#### Method 2
-
-Use the `create-payload-app` CLI to clone this template directly to your machine:
-
-```bash
-pnpx create-payload-app my-project -t website
-```
-
-#### Method 3
-
-Use the `git` CLI to clone this template directly to your machine:
-
-```bash
-git clone -n --depth=1 --filter=tree:0 https://github.com/payloadcms/payload my-project && cd my-project && git sparse-checkout set --no-cone templates/website && git checkout && rm -rf .git && git init && git add . && git mv -f templates/website/{.,}* . && git add . && git commit -m "Initial commit"
-```
+1. Clone the repository
+2. Set up environment variables
+   ```bash
+   cp .env.example .env
+   ```
+3. Update the `.env` file with your database credentials and Stripe API keys
+4. Install dependencies
+   ```bash
+   pnpm install
+   ```
+5. Start the development server
+   ```bash
+   pnpm dev
+   ```
+6. Open `http://localhost:3000` in your browser
 
 ### Development
 
@@ -64,31 +64,49 @@ That's it! Changes made in `./src` will be reflected in your app. Follow the on-
 
 The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
 
+## E-commerce Features
+
+The Kikky Art Studio website includes a comprehensive set of e-commerce features:
+
+### Product Management
+
+- **Products Collection**: Fully-featured product management with support for title, description, pricing, images, inventory, and SKUs
+- **Multi-currency Support**: Support for multiple currencies including USD, EUR, KES (Kenyan Shilling), GBP, JPY, and CAD
+- **Categories**: Organize products into browsable categories with featured images
+- **Featured Products**: Highlight special products on the homepage and collection pages
+- **Stock Management**: Track inventory levels with optional display of stock status
+
+### Shopping Cart & Checkout
+
+- **Cart Management**: Add, update, and remove items from shopping cart
+- **Secure Checkout**: Streamlined checkout process with Stripe integration
+- **Order History**: Users can view their order history and status
+
 ### Collections
 
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for details on how to extend this functionality.
+- #### Products
+  Manage the art products available in the store with details like title, description, price, images, stock level, and SKU.
+
+- #### Orders
+  Track and manage customer orders with order details, status, payment information, and fulfillment tracking.
 
 - #### Users (Authentication)
+  Users can create accounts to track orders and save shipping information. Admin users have access to the admin panel and can manage products, orders, and content.
 
-  Users are auth-enabled collections that have access to the admin panel and unpublished content. See [Access Control](#access-control) for more details.
-
-  For additional help, see the official [Auth Example](https://github.com/payloadcms/payload/tree/main/examples/auth) or the [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview) docs.
+- #### Carts
+  Shopping cart functionality for tracking items before checkout.
 
 - #### Posts
-
-  Posts are used to generate blog posts, news articles, or any other type of content that is published over time. All posts are layout builder enabled so you can generate unique layouts for each post using layout-building blocks, see [Layout Builder](#layout-builder) for more details. Posts are also draft-enabled so you can preview them before publishing them to your website, see [Draft Preview](#draft-preview) for more details.
+  Share news, updates, and articles about the art studio and products. All posts use the layout builder for flexible content design.
 
 - #### Pages
-
-  All pages are layout builder enabled so you can generate unique layouts for each page using layout-building blocks, see [Layout Builder](#layout-builder) for more details. Pages are also draft-enabled so you can preview them before publishing them to your website, see [Draft Preview](#draft-preview) for more details.
+  Create custom pages with the layout builder to showcase information about the studio, art processes, or special collections.
 
 - #### Media
-
-  This is the uploads enabled collection used by pages, posts, and projects to contain media like images, videos, downloads, and other assets. It features pre-configured sizes, focal point and manual resizing to help you manage your pictures.
+  Manage all images and other media files for products, posts, pages, and categories.
 
 - #### Categories
-
-  A taxonomy used to group posts together. Categories can be nested inside of one another, for example "News > Technology". See the official [Payload Nested Docs Plugin](https://payloadcms.com/docs/plugins/nested-docs) for more details.
+  Organize products into browsable categories to help customers find art pieces that match their interests.
 
 ### Globals
 
@@ -164,27 +182,31 @@ We have configured [Scheduled Publish](https://payloadcms.com/docs/versions/draf
 
 > Note: When deployed on Vercel, depending on the plan tier, you may be limited to daily cron only.
 
-## Website
+## Website & User Interface
 
-This template includes a beautifully designed, production-ready front-end built with the [Next.js App Router](https://nextjs.org), served right alongside your Payload app in a instance. This makes it so that you can deploy both your backend and website where you need it.
+The Kikky Art Studio website features a beautifully designed, production-ready front-end built with Next.js, offering a premium shopping experience for art enthusiasts.
 
-Core features:
+### Frontend Features
 
-- [Next.js App Router](https://nextjs.org)
-- [TypeScript](https://www.typescriptlang.org)
-- [React Hook Form](https://react-hook-form.com)
-- [Payload Admin Bar](https://github.com/payloadcms/payload/tree/main/packages/admin-bar)
-- [TailwindCSS styling](https://tailwindcss.com/)
-- [shadcn/ui components](https://ui.shadcn.com/)
-- User Accounts and Authentication
-- Fully featured blog
-- Publication workflow
-- Dark mode
-- Pre-made layout building blocks
-- SEO
-- Search
-- Redirects
-- Live preview
+- **Modern UI/UX**: Elegant, responsive design optimized for showcasing art products
+- **Product Galleries**: High-quality image galleries with zoom functionality
+- **Category Browsing**: Intuitive navigation through art categories
+- **User Accounts**: Customer registration, login, and profile management
+- **Shopping Cart**: Seamless cart experience with real-time updates
+- **Checkout Process**: Streamlined, secure checkout with Stripe integration
+- **Search Functionality**: Advanced search capabilities to find specific art pieces
+- **Dark/Light Mode**: Support for user preference on theme
+- **Responsive Design**: Optimized for all device sizes
+
+### Technical Stack
+
+- [Next.js App Router](https://nextjs.org) for frontend routing and rendering
+- [Payload CMS](https://payloadcms.com) for content and product management
+- [TypeScript](https://www.typescriptlang.org) for type-safe code
+- [TailwindCSS](https://tailwindcss.com/) for styling
+- [shadcn/ui components](https://ui.shadcn.com/) for UI elements
+- [Stripe](https://stripe.com) for payment processing
+- [PostgreSQL](https://www.postgresql.org/) for database storage
 
 ### Cache
 
@@ -256,9 +278,23 @@ To run Payload in production, you need to build and start the Admin panel. To do
 1. Finally run `pnpm start` or `npm run start` to run Node in production and serve Payload from the `.build` directory.
 1. When you're ready to go live, see Deployment below for more details.
 
-### Deploying to Payload Cloud
+### Stripe Integration
 
-The easiest way to deploy your project is to use [Payload Cloud](https://payloadcms.com/new/import), a one-click hosting solution to deploy production-ready instances of your Payload apps directly from your GitHub repo.
+The Kikky Art Studio website integrates with Stripe for secure payment processing. Products in the store automatically sync with Stripe products and prices when configured with a valid Stripe API key.
+
+## Multi-Currency Support
+
+The platform supports multiple currencies to serve an international customer base:
+- US Dollar ($)
+- Euro (€)
+- Kenyan Shilling (KSh)
+- British Pound (£)
+- Japanese Yen (¥)
+- Canadian Dollar (CA$)
+
+## Deployment
+
+The Kikky Art Studio website can be deployed to various hosting platforms:
 
 ### Deploying to Vercel
 
