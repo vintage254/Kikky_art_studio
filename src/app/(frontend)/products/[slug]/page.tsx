@@ -7,6 +7,8 @@ import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { Gutter } from '@/components/ui/Gutter'
 import { generateMeta } from '@/utilities/generateMeta'
 import ProductDetailClient from './product-detail.client'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
 
 // Use a cache function to fetch the product by slug
 const getProductBySlug = cache(async (slug: string) => {
