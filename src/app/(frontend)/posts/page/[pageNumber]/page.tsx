@@ -3,9 +3,13 @@ import type { Metadata } from 'next/types'
 import { CollectionArchive } from '@/components/CollectionArchive'
 import { PageRange } from '@/components/PageRange'
 import { Pagination } from '@/components/Pagination'
-import React from 'react'
-import PageClient from './page.client'
+import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
+import React from 'react'
+import { Gutter } from '@/components/ui/Gutter'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
+import PageClient from './page.client'
 
 export const revalidate = 600
 
@@ -67,21 +71,28 @@ export async function generateMetadata({ params: paramsPromise }: Args): Promise
 }
 
 export async function generateStaticParams() {
-  // Use the API endpoint instead of direct Payload import
-  const apiUrl = new URL('/api/posts', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
-  apiUrl.searchParams.set('limit', '1') // Just need count information, not actual posts
-  
-  const response = await fetch(apiUrl.toString())
-  const result = await response.json()
-  const totalDocs = result.totalDocs
-
-  const totalPages = Math.ceil(totalDocs / 10)
-
-  const pages: { pageNumber: string }[] = []
-
-  for (let i = 1; i <= totalPages; i++) {
-    pages.push({ pageNumber: String(i) })
+  try {
+    // Use Payload directly during build time instead of API routes
+    const payload = await getPayload({ config: configPromise })
+    
+    // Get total count of posts
+    const result = await payload.find({
+      collection: 'posts',
+      limit: 1, // Just need count information, not actual posts
+    })
+    
+    const totalDocs = result.totalDocs
+    const totalPages = Math.ceil(totalDocs / 10)
+    
+    const pages: { pageNumber: string }[] = []
+    
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push({ pageNumber: String(i) })
+    }
+    
+    return pages
+  } catch (error) {
+    console.error('Error generating static params for post pages:', error)
+    return [] // Return empty array as fallback
   }
-
-  return pages
 }

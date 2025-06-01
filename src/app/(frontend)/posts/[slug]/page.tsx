@@ -12,20 +12,28 @@ import { PostHero } from '@/heros/PostHero'
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
 
 export async function generateStaticParams() {
-  // Use the API endpoint instead of direct Payload import
-  const apiUrl = new URL('/api/posts', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
-  apiUrl.searchParams.set('limit', '1000')
-  
-  const response = await fetch(apiUrl.toString())
-  const posts = await response.json()
+  try {
+    // Use Payload directly during build time instead of API routes
+    const payload = await getPayload({ config: configPromise })
+    
+    const posts = await payload.find({
+      collection: 'posts',
+      limit: 1000,
+    })
 
-  const params = posts.docs.map(({ slug }) => {
-    return { slug }
-  })
+    const params = posts.docs.map(({ slug }) => {
+      return { slug }
+    })
 
-  return params
+    return params || []
+  } catch (error) {
+    console.error('Error generating static params for posts:', error)
+    return [] // Return empty array as fallback
+  }
 }
 
 type Args = {
@@ -59,7 +67,7 @@ export default async function Post({ params: paramsPromise }: Args) {
           {post.relatedPosts && post.relatedPosts.length > 0 && (
             <RelatedPosts
               className="mt-12 max-w-[52rem] lg:grid lg:grid-cols-subgrid col-start-1 col-span-3 grid-rows-[2fr]"
-              docs={post.relatedPosts.filter((post) => typeof post === 'object')}
+              docs={post.relatedPosts.filter((post: any) => typeof post === 'object')}
             />
           )}
         </div>

@@ -4,6 +4,22 @@ import { PayloadRedirects } from '@/components/PayloadRedirects'
 import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
 import { homeStatic } from '@/endpoints/seed/home-static'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
+
+// Define type for pages collection data
+type RequiredDataFromCollectionSlug<T extends string> = {
+  id: string
+  title: string
+  slug: string
+  hero?: any
+  layout?: any[]
+  meta?: {
+    title?: string
+    description?: string
+    image?: any
+  }
+}
 
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RenderHero } from '@/heros/RenderHero'
@@ -15,23 +31,29 @@ import { Gutter } from '@/components/ui/Gutter'
 import classes from './index.module.scss'
 
 export async function generateStaticParams() {
-  // Use the API endpoint to fetch pages instead of direct Payload import
-  const apiUrl = new URL('/api/pages', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
-  apiUrl.searchParams.set('limit', '1000')
-  
-  const response = await fetch(apiUrl.toString())
-  const pages = await response.json()
-
-  const params = pages.docs
-    ?.filter((doc) => {
-      // Exclude home, products, and account slugs as they have custom implementations
-      return doc.slug !== 'home' && doc.slug !== 'products' && doc.slug !== 'account'
-    })
-    .map(({ slug }) => {
-      return { slug }
+  try {
+    // Use Payload directly during build time instead of API routes
+    const payload = await getPayload({ config: configPromise })
+    
+    const pages = await payload.find({
+      collection: 'pages',
+      limit: 1000,
     })
 
-  return params
+    const params = pages.docs
+      ?.filter((doc) => {
+        // Exclude home, products, and account slugs as they have custom implementations
+        return doc.slug !== 'home' && doc.slug !== 'products' && doc.slug !== 'account'
+      })
+      .map(({ slug }) => {
+        return { slug }
+      })
+
+    return params || []
+  } catch (error) {
+    console.error('Error generating static params:', error)
+    return [] // Return empty array as fallback
+  }
 }
 
 type Args = {
@@ -139,10 +161,10 @@ export default async function Page({ params: paramsPromise }: Args) {
   
   if (slug === 'home' && layout && layout.length > 0) {
     // Find and extract the CTA block
-    ctaBlock = layout.find(block => block.blockType === 'cta') || null
+    ctaBlock = layout.find((block: { blockType: string }) => block.blockType === 'cta') || null
     
     // Filter out the CTA block from the layout so it's not rendered twice
-    filteredLayout = layout.filter(block => block.blockType !== 'cta')
+    filteredLayout = layout.filter((block: { blockType: string }) => block.blockType !== 'cta')
   }
 
   return (
@@ -193,22 +215,21 @@ export async function generateMetadata({ params: paramsPromise }: Args): Promise
 const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
   const { isEnabled: draft } = await draftMode()
 
-  // Use the API endpoint to fetch page data instead of direct Payload import
-  const apiUrl = new URL('/api/pages', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
-  apiUrl.searchParams.set('slug', slug)
-  apiUrl.searchParams.set('limit', '1')
-  apiUrl.searchParams.set('draft', draft ? 'true' : 'false')
-  
   try {
-    const response = await fetch(apiUrl.toString(), {
-      next: { tags: [`page-${slug}`] }
+    // Use Payload directly during build time instead of API routes
+    const payload = await getPayload({ config: configPromise })
+    
+    const result = await payload.find({
+      collection: 'pages',
+      where: {
+        slug: {
+          equals: slug
+        }
+      },
+      limit: 1,
+      draft: draft
     })
     
-    if (!response.ok) {
-      return null
-    }
-    
-    const result = await response.json()
     return result.docs?.[0] || null
   } catch (error) {
     console.error(`Error fetching page with slug ${slug}:`, error)
