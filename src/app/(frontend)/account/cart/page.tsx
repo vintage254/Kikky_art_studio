@@ -1,22 +1,18 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import { Gutter } from '@/components/ui/Gutter';
-
-// Import the client component
-import CartClient from './cart-client';
+import CartWrapper from './cart-wrapper';
 
 /**
  * Cart Page (Server Component)
  * 
- * This server component provides the layout and wraps the client component
- * in a Suspense boundary to properly handle React hooks used in the cart.
+ * This server component provides the layout and wraps the client component wrapper
+ * to handle client-side dynamic imports properly in Next.js 15.x.
  */
 export default function CartPage() {
   return (
     <Gutter className="py-10">
       <div className="container mx-auto">
-        <Suspense fallback={<div className="text-center py-8">Loading cart...</div>}>
-          <CartClient />
-        </Suspense>
+        <CartWrapper />
       </div>
     </Gutter>
   );
