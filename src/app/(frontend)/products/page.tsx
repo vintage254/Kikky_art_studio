@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 import { PayloadRedirects } from '@/components/PayloadRedirects'
@@ -173,14 +173,16 @@ export default async function ProductsPage() {
       />
 
       <Gutter className="mt-12 mb-24">
-        {/* Pass the data to the client component */}
-        <ProductsClient 
-          categories={categories} 
-          products={products} 
-          pageTitle={productsPage.title || 'Products'} 
-          heroImage={heroImage}
-          tagline={tagline}
-        />
+        {/* Pass the data to the client component wrapped in Suspense */}
+        <Suspense fallback={<div>Loading products...</div>}>
+          <ProductsClient 
+            categories={categories} 
+            products={products} 
+            pageTitle={productsPage.title || 'Products'} 
+            heroImage={heroImage}
+            tagline={tagline}
+          />
+        </Suspense>
       </Gutter>
     </article>
   )
