@@ -64,10 +64,12 @@ export default async function Post({ params: paramsPromise }: Args) {
       <div className="flex flex-col items-center gap-4 pt-8">
         <div className="container">
           <RichText className="max-w-[48rem] mx-auto" data={post.content} enableGutter={false} />
-          {post.relatedPosts && post.relatedPosts.length > 0 && (
+          {post.relatedPosts && Array.isArray(post.relatedPosts) && post.relatedPosts.length > 0 && (
             <RelatedPosts
               className="mt-12 max-w-[52rem] lg:grid lg:grid-cols-subgrid col-start-1 col-span-3 grid-rows-[2fr]"
-              docs={post.relatedPosts.filter((post: any) => typeof post === 'object')}
+              docs={post.relatedPosts.filter((relatedPost): relatedPost is Post => 
+                typeof relatedPost === 'object' && relatedPost !== null
+              )}
             />
           )}
         </div>
@@ -86,21 +88,25 @@ export async function generateMetadata({ params: paramsPromise }: Args): Promise
 const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
   const { isEnabled: draft } = await draftMode()
 
-  // Use the API endpoint instead of direct Payload import
-  const apiUrl = new URL('/api/posts', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
-  apiUrl.searchParams.set('slug', slug)
-  
+  // Use direct Payload API call instead of API route for static generation
   try {
-    const response = await fetch(apiUrl.toString(), { 
-      next: { tags: [`post-${slug}`] }
+    const payload = await getPayload({ config: configPromise })
+    
+    const result = await payload.find({
+      collection: 'posts',
+      where: {
+        slug: {
+          equals: slug
+        },
+        _status: {
+          equals: draft ? undefined : 'published'
+        }
+      },
+      limit: 1,
+      depth: 2
     })
     
-    if (!response.ok) {
-      return null
-    }
-    
-    // Single post returns the post object directly
-    return await response.json()
+    return result.docs?.[0] || null
   } catch (error) {
     console.error('Error fetching post:', error)
     return null

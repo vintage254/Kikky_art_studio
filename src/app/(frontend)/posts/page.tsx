@@ -10,12 +10,24 @@ export const dynamic = 'force-static'
 export const revalidate = 600
 
 export default async function Page() {
-  // Use the server API endpoint instead of direct Payload import
-  const apiUrl = new URL('/api/posts', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
-  apiUrl.searchParams.set('limit', '12')
+  // Use direct Payload API call instead of API route for static generation
+  const { getPayload } = await import('payload')
+  const { default: configPromise } = await import('@payload-config')
   
-  const response = await fetch(apiUrl.toString(), { next: { revalidate: 600 } })
-  const posts = await response.json()
+  const payload = await getPayload({ config: configPromise })
+  
+  const posts = await payload.find({
+    collection: 'posts',
+    where: {
+      _status: {
+        equals: 'published',
+      },
+    },
+    limit: 12,
+    page: 1,
+    sort: '-publishedAt',
+    depth: 1,
+  })
 
   return (
     <div className="pb-24">

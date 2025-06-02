@@ -13,21 +13,25 @@ import configPromise from '@payload-config'
 // Use a cache function to fetch the product by slug
 const getProductBySlug = cache(async (slug: string) => {
   try {
-    // Use the API endpoint instead of direct Payload import
-    const apiUrl = new URL(`/api/products/${slug}`, process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
+    // Use direct Payload API call instead of API route for static generation
+    const { isEnabled: draft } = await draftMode()
+    const payload = await getPayload({ config: configPromise })
     
-    const response = await fetch(apiUrl.toString(), {
-      next: { tags: [`product-${slug}`] }
+    const result = await payload.find({
+      collection: 'products',
+      where: {
+        slug: {
+          equals: slug
+        },
+        _status: {
+          equals: draft ? undefined : 'published'
+        }
+      },
+      limit: 1,
+      depth: 2
     })
     
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null
-      }
-      throw new Error(`Failed to fetch product: ${response.statusText}`)
-    }
-    
-    return await response.json()
+    return result.docs?.[0] || null
   } catch (error) {
     console.error(`Error fetching product with slug ${slug}:`, error)
     return null
