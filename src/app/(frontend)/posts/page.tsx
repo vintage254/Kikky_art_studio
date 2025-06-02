@@ -3,7 +3,7 @@ import type { Metadata } from 'next/types'
 import { CollectionArchive } from '@/components/CollectionArchive'
 import { PageRange } from '@/components/PageRange'
 import { Pagination } from '@/components/Pagination'
-import React from 'react'
+import React, { Suspense } from 'react'
 import PageClient from './page.client'
 
 export const dynamic = 'force-static'
@@ -31,7 +31,9 @@ export default async function Page() {
 
   return (
     <div className="pb-24">
-      <PageClient />
+      <Suspense fallback={<div className="container py-8 text-center">Loading posts interface...</div>}>
+        <PageClient />
+      </Suspense>
       <div className="container mb-16">
         <div className="prose dark:prose-invert max-w-none">
           <h1>Posts</h1>

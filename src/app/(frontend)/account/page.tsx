@@ -1,22 +1,22 @@
-'use client';
-
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense } from 'react';
 import { Gutter } from '@/components/ui/Gutter';
 
-// Default account page redirects to the cart section
+// Import the client component
+import AccountClient from './account-client';
+
+/**
+ * Account Page (Server Component)
+ * 
+ * This server component provides the layout and wraps the client component
+ * in a Suspense boundary to handle client-side routing.
+ */
 export default function AccountPage() {
-  const router = useRouter();
-  
-  useEffect(() => {
-    // Redirect to the cart page by default
-    router.push('/account/cart');
-  }, [router]);
-  
   return (
     <Gutter>
       <div className="flex items-center justify-center py-12">
-        <div className="animate-pulse">Redirecting to your account...</div>
+        <Suspense fallback={<div className="animate-pulse">Loading account...</div>}>
+          <AccountClient />
+        </Suspense>
       </div>
     </Gutter>
   );
