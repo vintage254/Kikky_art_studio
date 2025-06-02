@@ -10,13 +10,21 @@ import { ProductHero } from './ProductHero'
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    // Use API endpoint to fetch page data
-    const pageUrl = new URL('/api/pages', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
-    pageUrl.searchParams.set('slug', 'products')
-    pageUrl.searchParams.set('limit', '1')
+    // Use direct Payload API call instead of API route for static generation
+    const { getPayload } = await import('payload')
+    const { default: configPromise } = await import('@payload-config')
     
-    const response = await fetch(pageUrl.toString())
-    const productsPage = await response.json()
+    const payload = await getPayload({ config: configPromise })
+    
+    const productsPage = await payload.find({
+      collection: 'pages',
+      where: {
+        slug: {
+          equals: 'products'
+        }
+      },
+      limit: 1
+    })
 
     const doc = productsPage.docs?.[0] || null
     return generateMeta({ doc })
@@ -33,33 +41,65 @@ export default async function ProductsPage() {
   console.log('Rendering custom Products page')
   const { isEnabled: draft } = await draftMode()
   
-  // Fetch the Products page data using API endpoint
-  const pageUrl = new URL('/api/pages', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
-  pageUrl.searchParams.set('slug', 'products')
-  pageUrl.searchParams.set('limit', '1')
-  pageUrl.searchParams.set('depth', '2')
+  // Use direct Payload API calls instead of API routes for static generation
+  const { getPayload } = await import('payload')
+  const { default: configPromise } = await import('@payload-config')
   
-  let response = await fetch(pageUrl.toString(), { next: { tags: ['products-page'] } })
-  let productsPageData = await response.json()
+  const payload = await getPayload({ config: configPromise })
+  
+  // Fetch the Products page data
+  let productsPageQuery = await payload.find({
+    collection: 'pages',
+    where: {
+      slug: {
+        equals: 'products'
+      },
+      _status: {
+        equals: draft ? undefined : 'published'
+      }
+    },
+    limit: 1,
+    depth: 2
+  })
+  
+  let productsPageData = productsPageQuery
   
   // If we don't find it with lowercase, try with capitalized first letter
   if (productsPageData.docs.length === 0) {
-    pageUrl.searchParams.set('slug', 'Products')
-    response = await fetch(pageUrl.toString(), { next: { tags: ['products-page'] } })
-    productsPageData = await response.json()
+    productsPageQuery = await payload.find({
+      collection: 'pages',
+      where: {
+        slug: {
+          equals: 'Products'
+        },
+        _status: {
+          equals: draft ? undefined : 'published'
+        }
+      },
+      limit: 1,
+      depth: 2
+    })
+    productsPageData = productsPageQuery
   }
 
-  // Get all categories using API endpoint
-  const categoriesUrl = new URL('/api/categories', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
-  categoriesUrl.searchParams.set('limit', '100')
-  const categoriesResponse = await fetch(categoriesUrl.toString(), { next: { tags: ['categories'] } })
-  const categoriesData = await categoriesResponse.json()
+  // Get all categories
+  const categoriesData = await payload.find({
+    collection: 'categories',
+    limit: 100,
+    depth: 1
+  })
 
-  // Get all products using API endpoint
-  const productsUrl = new URL('/api/products', process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000')
-  productsUrl.searchParams.set('limit', '100')
-  const productsResponse = await fetch(productsUrl.toString(), { next: { tags: ['products'] } })
-  const productsData = await productsResponse.json()
+  // Get all products
+  const productsData = await payload.find({
+    collection: 'products',
+    limit: 100,
+    depth: 2,
+    where: {
+      _status: {
+        equals: draft ? undefined : 'published'
+      }
+    }
+  })
 
   // Ensure we have proper data structures even if API returns unexpected results
   const products = (productsData?.docs && Array.isArray(productsData.docs)) ? productsData.docs : []

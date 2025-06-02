@@ -1,47 +1,57 @@
 import { getServerSideSitemap } from 'next-sitemap'
 import { unstable_cache } from 'next/cache'
 
-// Define types for post objects
+// Define types for post objects from Payload
 interface PostDoc {
-  slug?: string;
+  slug?: string | null;
   updatedAt?: string;
+  _status?: string;
+  _id?: string;
 }
 
 const getPostsSitemap = unstable_cache(
   async () => {
-    // Use fetch API instead of direct Payload import
+    // Use direct Payload API calls instead of API routes
     const SITE_URL =
       process.env.NEXT_PUBLIC_SERVER_URL ||
       process.env.VERCEL_PROJECT_PRODUCTION_URL ||
       'https://example.com'
     
-    // Call the posts API with appropriate parameters
-    const apiUrl = new URL('/api/posts', SITE_URL)
-    apiUrl.searchParams.set('limit', '1000')
-    apiUrl.searchParams.set('select', 'slug,updatedAt')
-    apiUrl.searchParams.set('where', JSON.stringify({
-      _status: {
-        equals: 'published'
-      }
-    }))
+    // Use Payload directly
+    const { getPayload } = await import('payload')
+    const { default: configPromise } = await import('@payload-config')
     
-    const response = await fetch(apiUrl.toString())
-    if (!response.ok) {
-      console.error('Failed to fetch posts for sitemap')
+    const payload = await getPayload({ config: configPromise })
+    
+    let results
+    
+    try {
+      results = await payload.find({
+        collection: 'posts',
+        limit: 1000,
+        where: {
+          _status: {
+            equals: 'published'
+          }
+        },
+        depth: 0,
+      })
+    } catch (error) {
+      console.error('Failed to fetch posts for sitemap', error)
       return []
     }
-    
-    const results = await response.json()
 
     const dateFallback = new Date().toISOString()
 
     const sitemap = results.docs
       ? results.docs
-          .filter((post: PostDoc) => Boolean(post?.slug))
-          .map((post: PostDoc) => ({
-            loc: `${SITE_URL}/posts/${post?.slug}`,
-            lastmod: post.updatedAt || dateFallback,
-          }))
+          .filter((post: any): post is PostDoc => Boolean(post?.slug))
+          .map((post: any) => {
+            return {
+              loc: `${SITE_URL}/posts/${post?.slug}`,
+              lastmod: post.updatedAt || dateFallback,
+            }
+          })
       : []
 
     return sitemap
