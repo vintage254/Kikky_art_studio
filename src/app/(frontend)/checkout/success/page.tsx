@@ -1,20 +1,19 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import { Gutter } from '@/components/ui/Gutter';
-import dynamic from 'next/dynamic';
+import CheckoutSuccessWrapper from './success-wrapper';
 
-// Use dynamic import for the client component
-const CheckoutSuccessContent = dynamic(() => import('./CheckoutSuccessContent'), {
-  loading: () => <div className="text-center py-12">Loading order details...</div>
-});
-
+/**
+ * Checkout Success Page (Server Component)
+ * 
+ * This server component provides the layout and wraps the client component wrapper
+ * to handle client-side dynamic imports properly in Next.js 15.x.
+ */
 export default function CheckoutSuccessPage() {
   return (
     <div className="py-12">
       <Gutter>
         <h1 className="text-3xl font-bold mb-8">Order Confirmation</h1>
-        
-        {/* Using dynamically imported client component */}
-        <CheckoutSuccessContent />
+        <CheckoutSuccessWrapper />
       </Gutter>
     </div>
   );
