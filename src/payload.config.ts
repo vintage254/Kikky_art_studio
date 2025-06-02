@@ -1,4 +1,5 @@
-// storage-adapter-import-placeholder
+// Storage adapter imports
+import { cloudinaryStorage } from 'payload-cloudinary'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 // Import both client and serverless adapters
 import { createNeonServerlessAdapter } from './utilities/database/neon-serverless-adapter'
@@ -103,7 +104,20 @@ export default buildConfig({
   globals: [Header, Footer],
   plugins: [
     ...plugins,
-    // storage-adapter-placeholder
+    // Configure Cloudinary storage adapter for media uploads
+    cloudinaryStorage({
+      config: {
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME || '',
+        api_key: process.env.CLOUDINARY_API_KEY || '',
+        api_secret: process.env.CLOUDINARY_API_SECRET || ''
+      },
+      collections: {
+        'media': true, // Enable for media collection only
+      },
+      folder: 'kikky-art-studio', // Custom folder in Cloudinary
+      disableLocalStorage: process.env.NODE_ENV === 'production', // Keep local storage for development
+      enabled: true // Enable the plugin
+    })
   ],
   secret: process.env.PAYLOAD_SECRET,
   sharp,
