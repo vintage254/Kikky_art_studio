@@ -35,6 +35,9 @@ export default buildConfig({
     // Allow same-origin requests
     'http://localhost:3000',
     'http://localhost:3001',
+    // Add your production URL
+    'https://kikky-art-studio.vercel.app',
+    // Also include the environment variable if it exists
     ...(process.env.NEXT_PUBLIC_SERVER_URL ? [process.env.NEXT_PUBLIC_SERVER_URL] : []),
   ],
 
@@ -43,9 +46,11 @@ export default buildConfig({
     // Development URLs
     'http://localhost:3000',
     'http://localhost:3001',
-    // Add your production URLs if needed
-    ...(process.env.NEXT_PUBLIC_SERVER_URL || '').split(',').filter(Boolean),
-  ].filter(Boolean),
+    // Production URL
+    'https://kikky-art-studio.vercel.app',
+    // Also include the environment variable if it exists
+    ...(process.env.NEXT_PUBLIC_SERVER_URL ? [process.env.NEXT_PUBLIC_SERVER_URL] : []),
+  ],
 
   admin: {
     components: {
