@@ -115,26 +115,9 @@ export default buildConfig({
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME || '',
         api_key: process.env.CLOUDINARY_API_KEY || '',
         api_secret: process.env.CLOUDINARY_API_SECRET || '',
-
-        secure: process.env.NODE_ENV === 'production',
       },
       collections: {
-        'media': {
-          // Configure upload options specifically for media collection
-          uploadOptions: {
-            folder: 'kikky-art-studio',
-            // Let Cloudinary handle format optimization
-            format: 'auto',
-            quality: 'auto',
-            // Enable automatic image optimization
-            fetch_format: 'auto',
-          },
-          // Configure transformation options
-          transformationOptions: {
-            quality: 'auto:best',
-            fetch_format: 'auto',
-          },
-        },
+        'media': true,
       },
       // Global folder for all uploads
       folder: 'kikky-art-studio',

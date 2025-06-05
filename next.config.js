@@ -75,30 +75,29 @@ const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: true,
   redirects,
+
   // External packages configuration for serverless components
   serverExternalPackages: [
     'cloudflare:sockets',
     '@neondatabase/serverless',
+    'sharp',
+    'cloudinary'
   ],
-  
+
   // Import customization
   modularizeImports: {
     '@neondatabase/serverless': {
       transform: '@neondatabase/serverless/{{member}}',
     },
   },
-  
+
   experimental: {
-    // These settings should remain in experimental
+    // FIXED: Removed serverComponentsExternalPackages (moved to serverExternalPackages)
     staticGenerationRetryCount: parseInt(process.env.NEXT_STATIC_GENERATION_RETRY_COUNT || '3'),
     staticGenerationMaxConcurrency: parseInt(process.env.NEXT_STATIC_GENERATION_MAX_CONCURRENCY || '2'),
     staticGenerationMinPagesPerWorker: parseInt(process.env.NEXT_STATIC_GENERATION_MIN_PAGES_PER_WORKER || '25'),
-    // Add serverComponentsExternalPackages for better control
-    serverComponentsExternalPackages: [
-      'sharp',
-      'cloudinary'
-    ],
   },
+
   // Handle Node.js modules for PostgreSQL on Vercel
   webpack: (config, { isServer, dev }) => {
     // Debug info for Vercel environment
@@ -108,15 +107,15 @@ const nextConfig = {
 
     // Apply custom alias resolver for path aliases
     config = aliasResolver(config);
-    
+
     // Handle Node-specific modules
     if (isServer) {
       // Make certain Node.js modules external on the server
-      config.externals = [...(config.externals || []), 
+      config.externals = [...(config.externals || []),
         'pg-native',
       ];
     }
-    
+
     // For Neon PostgreSQL support on Vercel - apply to both server and client
     if (process.env.VERCEL) {
       // Use our custom adapters
@@ -166,10 +165,10 @@ const nextConfig = {
         'assert': 'assert'
       };
     }
-    
+
     return config;
   },
-  
+
   // Ensure aliases are resolved correctly
   eslint: {
     ignoreDuringBuilds: true,
@@ -177,14 +176,15 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  
-  // Add Turbopack config
+
+  // FIXED: Turbopack config (moved from experimental.turbo)
   turbopack: {
     resolveAlias: {
       'payload-mock-package': 'payload-mock-package',
       'file-type': path.resolve(__dirname, 'file-type-adapter.js'),
     }
   },
+
   // Configure connection to Payload CMS
   serverRuntimeConfig: {
     payloadURL: PAYLOAD_URL,

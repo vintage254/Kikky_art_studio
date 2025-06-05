@@ -1,6 +1,8 @@
 // file-type-adapter.js
 // Custom file-type adapter for serverless environments
 
+import { readFile } from 'fs/promises'
+
 // MIME type detection based on file signatures (magic bytes)
 const fileSignatures = {
   // JPEG
@@ -97,25 +99,56 @@ function detectMimeType(buffer) {
   return null
 }
 
-// Mock the file-type module interface
-export async function fileTypeFromBuffer(buffer) {
-  const mimeType = detectMimeType(buffer)
+// Create file type result object
+function createFileTypeResult(mimeType) {
+  if (!mimeType) return undefined
 
-  if (!mimeType) {
-    return undefined
+  // Map mime types to common extensions
+  const extMap = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/gif': 'gif',
+    'image/webp': 'webp',
+    'image/bmp': 'bmp',
+    'image/tiff': 'tiff',
+    'image/x-icon': 'ico',
+    'image/svg+xml': 'svg',
+    'application/pdf': 'pdf',
+    'video/mp4': 'mp4',
+    'video/avi': 'avi',
+    'video/quicktime': 'mov',
   }
 
-  // Return in the format expected by file-type module
   return {
-    ext: mimeType.split('/')[1],
+    ext: extMap[mimeType] || mimeType.split('/')[1],
     mime: mimeType
+  }
+}
+
+// Mock fileTypeFromBuffer
+export async function fileTypeFromBuffer(buffer) {
+  const mimeType = detectMimeType(buffer)
+  return createFileTypeResult(mimeType)
+}
+
+// Mock fileTypeFromFile - THIS IS THE MISSING FUNCTION
+export async function fileTypeFromFile(filePath) {
+  try {
+    // Read the first 4KB of the file for type detection
+    const buffer = await readFile(filePath, { start: 0, end: 4096 })
+    const mimeType = detectMimeType(buffer)
+    return createFileTypeResult(mimeType)
+  } catch (error) {
+    console.error('Error reading file for type detection:', error)
+    return undefined
   }
 }
 
 // Default export for compatibility
 export default {
-  fileTypeFromBuffer
+  fileTypeFromBuffer,
+  fileTypeFromFile
 }
 
-// Named exports
-export { fileTypeFromBuffer as fromBuffer }
+// Named exports (including the missing one)
+export { fileTypeFromBuffer as fromBuffer, fileTypeFromFile }
