@@ -151,4 +151,4 @@ export default {
 }
 
 // Named exports (including the missing one)
-export { fileTypeFromBuffer as fromBuffer, fileTypeFromFile }
+//export { fileTypeFromBuffer as fromBuffer, fileTypeFromFile }
