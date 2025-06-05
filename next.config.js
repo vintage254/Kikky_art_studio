@@ -79,7 +79,6 @@ const nextConfig = {
   serverExternalPackages: [
     'cloudflare:sockets',
     '@neondatabase/serverless',
-    'file-type', // Add file-type to external packages
   ],
   
   // Import customization
@@ -96,7 +95,6 @@ const nextConfig = {
     staticGenerationMinPagesPerWorker: parseInt(process.env.NEXT_STATIC_GENERATION_MIN_PAGES_PER_WORKER || '25'),
     // Add serverComponentsExternalPackages for better control
     serverComponentsExternalPackages: [
-      'file-type',
       'sharp',
       'cloudinary'
     ],
@@ -116,7 +114,6 @@ const nextConfig = {
       // Make certain Node.js modules external on the server
       config.externals = [...(config.externals || []), 
         'pg-native',
-        'file-type', // Make file-type external to use our adapter
       ];
     }
     
