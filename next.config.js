@@ -84,13 +84,6 @@ const nextConfig = {
     'cloudinary'
   ],
 
-  // Import customization
-  modularizeImports: {
-    '@neondatabase/serverless': {
-      transform: '@neondatabase/serverless/{{member}}',
-    },
-  },
-
   experimental: {
     // FIXED: Removed serverComponentsExternalPackages (moved to serverExternalPackages)
     staticGenerationRetryCount: parseInt(process.env.NEXT_STATIC_GENERATION_RETRY_COUNT || '3'),
