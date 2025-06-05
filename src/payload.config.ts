@@ -92,8 +92,17 @@ export default buildConfig({
   editor: defaultLexical,
   // Use Neon serverless adapter when in production (Vercel), or regular PostgreSQL adapter in development
   db: process.env.VERCEL
-    ? createNeonServerlessAdapter()
-    : postgresAdapter({
+  ? createNeonServerlessAdapter({
+      // Add these serverless-specific settings
+      connectionString: process.env.DATABASE_URI,
+      // Reduce pool settings for serverless
+      poolConfig: {
+        max: 1, // Only 1 connection in serverless
+        idleTimeoutMillis: 1000,
+        connectionTimeoutMillis: 3000,
+      }
+    })
+  : postgresAdapter({
       pool: {
         // Get the connection string from environment
         connectionString: process.env.DATABASE_URI,

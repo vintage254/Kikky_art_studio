@@ -4,31 +4,43 @@
  * This adapter uses the @neondatabase/serverless driver instead of the standard pg driver
  * to enable compatibility with Vercel's serverless environment.
  */
-import { neon } from '@neondatabase/serverless/index';
+import { neon } from '@neondatabase/serverless';
 import { postgresAdapter } from '@payloadcms/db-postgres';
 
 /**
- * Creates a PostgreSQL adapter using Neon's serverless driver
+ * Type definitions for Neon adapter options
  */
-export function createNeonServerlessAdapter() {
-  // Get the database connection string from environment
-  const connectionString = process.env.DATABASE_URI || '';
+interface NeonPoolConfig {
+  max?: number;
+  idleTimeoutMillis?: number;
+  connectionTimeoutMillis?: number;
+  // Add other relevant pool config properties if they are supported by pg pool
+}
+
+interface NeonAdapterOptions {
+  connectionString: string;
+  poolConfig: NeonPoolConfig;
+}
+
+/**
+ * Creates a PostgreSQL adapter using Neon's serverless driver with custom options
+ */
+export function createNeonServerlessAdapter(options: NeonAdapterOptions) {
+  const { connectionString, poolConfig } = options;
   
-  // Create a Neon serverless SQL executor
+  // Create a Neon serverless SQL executor using the provided connection string
   const sql = neon(connectionString);
   
-  // Log successful configuration
-  console.log('📊 Configured Neon serverless database adapter');
+  // Log successful configuration with custom settings
+  console.log('📊 Configured Neon serverless database adapter with custom settings');
   
   // Create and return the adapter
-  // The postgresAdapter expects a pool config object, not an actual pool instance
+  // The postgresAdapter expects a pool config object.
+  // We pass the connectionString explicitly and spread the rest of the poolConfig.
   return postgresAdapter({
     pool: {
-      connectionString,
-      // Minimal pooling settings to prevent connection issues
-      max: 2,
-      idleTimeoutMillis: 5000,
-      connectionTimeoutMillis: 5000,
+      connectionString: connectionString, // Ensure connectionString is part of the pool options for postgresAdapter
+      ...poolConfig, // Spread the custom pool configuration (max, idleTimeoutMillis, etc.)
     }
   });
 }
