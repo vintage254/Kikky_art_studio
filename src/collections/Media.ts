@@ -8,6 +8,7 @@ import {
 
 import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
+import { setCorrectMimeType, validateMimeType } from '../hooks/mediaHooks'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -16,6 +17,9 @@ export const Media: CollectionConfig = {
     delete: authenticated,
     read: anyone,
     update: authenticated,
+  },
+  hooks: {
+    beforeChange: [setCorrectMimeType, validateMimeType],
   },
   fields: [
     {
@@ -34,17 +38,15 @@ export const Media: CollectionConfig = {
     },
   ],
   upload: {
-    // Upload to the public/media directory in Next.js making them publicly accessible even outside of Payload
     adminThumbnail: 'thumbnail',
     mimeTypes: ['image/*', 'video/*'],
-    // Disable cache tags to prevent issues with image preview URLs
     cacheTags: false,
-    focalPoint: true,
+    focalPoint: true, // Corrected from { enabled: true }
     imageSizes: [
       {
         name: 'thumbnail',
         width: 300,
-        height: undefined,
+        height: 300,
         position: 'centre',
       },
       {
@@ -56,25 +58,25 @@ export const Media: CollectionConfig = {
       {
         name: 'small',
         width: 600,
-        height: undefined,
+        height: 400,
         position: 'centre',
       },
       {
         name: 'medium',
         width: 900,
-        height: undefined,
+        height: 600,
         position: 'centre',
       },
       {
         name: 'large',
         width: 1400,
-        height: undefined,
+        height: 933,
         position: 'centre',
       },
       {
         name: 'xlarge',
         width: 1920,
-        height: undefined,
+        height: 1280,
         position: 'centre',
       },
       {

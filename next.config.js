@@ -23,6 +23,7 @@ const PAYLOAD_URL_OBJECT = new URL(PAYLOAD_URL)
 const nextConfig = {
   images: {
     remotePatterns: [
+      // Local development
       {
         protocol: 'http',
         hostname: 'localhost',
@@ -35,21 +36,34 @@ const nextConfig = {
         port: '3001',
         pathname: '/api/media/**',
       },
-      // Ensure we have a valid hostname for the production URL
+      // Cloudinary patterns
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: `/${process.env.CLOUDINARY_CLOUD_NAME}/**`,
+      },
+      {
+        protocol: 'https',
+        hostname: 'cloudinary.com',
+        port: '',
+        pathname: '/**',
+      },
+      // Production server
       process.env.NEXT_PUBLIC_SERVER_URL ? {
         protocol: 'https',
         hostname: process.env.NEXT_PUBLIC_SERVER_URL.replace(/^https?:\/\//, '').split(':')[0],
         port: '',
         pathname: '/api/media/**',
       } : null,
-      // Add your production domain if needed
+      // Payload URL
       {
         protocol: 'https',
         hostname: PAYLOAD_URL_OBJECT.hostname,
         port: PAYLOAD_URL_OBJECT.port || '',
         pathname: '/api/media/**',
       }
-    ],
+    ].filter(Boolean), // Remove null entries
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     formats: ['image/webp'],
@@ -61,13 +75,14 @@ const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: true,
   redirects,
-  // External packages configuration for serverless components (moved from experimental in Next.js 15.3.0)
+  // External packages configuration for serverless components
   serverExternalPackages: [
     'cloudflare:sockets',
     '@neondatabase/serverless',
+    'file-type', // Add file-type to external packages
   ],
   
-  // Import customization (moved from experimental in Next.js 15.3.0)
+  // Import customization
   modularizeImports: {
     '@neondatabase/serverless': {
       transform: '@neondatabase/serverless/{{member}}',
@@ -79,6 +94,12 @@ const nextConfig = {
     staticGenerationRetryCount: parseInt(process.env.NEXT_STATIC_GENERATION_RETRY_COUNT || '3'),
     staticGenerationMaxConcurrency: parseInt(process.env.NEXT_STATIC_GENERATION_MAX_CONCURRENCY || '2'),
     staticGenerationMinPagesPerWorker: parseInt(process.env.NEXT_STATIC_GENERATION_MIN_PAGES_PER_WORKER || '25'),
+    // Add serverComponentsExternalPackages for better control
+    serverComponentsExternalPackages: [
+      'file-type',
+      'sharp',
+      'cloudinary'
+    ],
   },
   // Handle Node.js modules for PostgreSQL on Vercel
   webpack: (config, { isServer, dev }) => {
@@ -92,10 +113,10 @@ const nextConfig = {
     
     // Handle Node-specific modules
     if (isServer) {
-      // Make certain Node.js modules external on the server (like fs, path, etc.)
+      // Make certain Node.js modules external on the server
       config.externals = [...(config.externals || []), 
-        // External modules for server-side only
         'pg-native',
+        'file-type', // Make file-type external to use our adapter
       ];
     }
     
@@ -104,16 +125,15 @@ const nextConfig = {
       // Use our custom adapters
       config.resolve.alias = {
         ...config.resolve.alias,
-        // Replace pg with our custom adapter that provides a default export
+        // Replace pg with our custom adapter
         'pg': path.resolve(__dirname, 'pg-default-export.js'),
-        // Replace file-type with our custom adapter that provides fileTypeFromFile
+        // Replace file-type with our custom adapter
         'file-type': path.resolve(__dirname, 'file-type-adapter.js'),
-        // Add polyfills for Node.js modules required by dependencies
+        // Add polyfills for Node.js modules
         'worker_threads': path.resolve(__dirname, 'worker-threads-polyfill.js'),
         'readline': path.resolve(__dirname, 'readline-polyfill.js'),
-        // Handle Cloudflare sockets with a custom resolver
         'cloudflare:sockets': path.resolve(__dirname, 'cloudflare-sockets-polyfill.js'),
-        // Handle node: protocol imports with explicit polyfills
+        // Handle node: protocol imports
         'node:assert': path.resolve(__dirname, 'node-assert-polyfill.js'),
         'node:fs': path.resolve(__dirname, 'node-fs-polyfill.js'),
         'node:module': path.resolve(__dirname, 'node-module-polyfill.js'),
@@ -129,10 +149,8 @@ const nextConfig = {
 
     // For client-side builds
     if (!isServer) {
-      // Handle Node.js built-in modules properly
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        // Provide empty implementations for Node.js modules
         'dns': false,
         'net': false,
         'tls': false,
@@ -140,7 +158,7 @@ const nextConfig = {
         'child_process': false,
         'worker_threads': false,
         'readline': false,
-        // Provide browser-compatible implementations for common modules
+        'file-type': path.resolve(__dirname, 'file-type-adapter.js'), // Use our adapter on client
         'crypto': 'crypto-browserify',
         'stream': 'stream-browserify',
         'util': 'util',
@@ -152,33 +170,22 @@ const nextConfig = {
       };
     }
     
-    // Ensure packages that use these Node.js modules don't break the client build
-    if (!isServer) {
-      // Set process.browser flag for client-side code
-      config.plugins = [...config.plugins];
-    }
-    
     return config;
   },
   
   // Ensure aliases are resolved correctly
   eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
   typescript: {
-    // !! WARN !!
-    // Allows production builds to successfully complete even if your project has type errors.
     ignoreBuildErrors: true,
   },
   
-  // We'll add experimental config inside the nextConfig variable below
   // Add Turbopack config
   turbopack: {
-    // Migrate the resolveAlias that Payload would add to experimental.turbo
     resolveAlias: {
-      'payload-mock-package': 'payload-mock-package'
+      'payload-mock-package': 'payload-mock-package',
+      'file-type': path.resolve(__dirname, 'file-type-adapter.js'),
     }
   },
   // Configure connection to Payload CMS
