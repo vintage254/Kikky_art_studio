@@ -135,28 +135,46 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
       if (attemptCount === 0 && resource.url) {
         try {
           const baseUrl = getClientSideURL();
-          let directUrlAttempt = resource.url; // Start with resource.url
+          let pathPart = resource.url;
 
-          // Check if resource.url is already absolute
-          if (directUrlAttempt.startsWith('http')) {
-            // It's already absolute, use as is
+          let finalUrl;
+
+          if (pathPart.startsWith('http')) {
+            // resource.url is already absolute, use it directly
+            finalUrl = pathPart;
           } else {
-            // It's relative, join with baseUrl carefully
-            const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-            const cleanResourceUrl = directUrlAttempt.startsWith('/') ? directUrlAttempt : `/${directUrlAttempt}`;
-            directUrlAttempt = `${cleanBaseUrl}${cleanResourceUrl}`;
+            // Join baseUrl and pathPart carefully
+            const baseSegments = baseUrl.split('/').filter(Boolean); // Filter out empty segments
+            const pathSegments = pathPart.split('/').filter(Boolean); // Filter out empty segments
+            
+            // Reconstruct, ensuring protocol is handled
+            let scheme = '';
+            if (baseSegments.length > 0 && (baseSegments[0] === 'http:' || baseSegments[0] === 'https:')) {
+              scheme = baseSegments.shift() + '//'; // e.g., "http://" or "https://"
+            } else if (baseUrl.startsWith('//')) { // Handle protocol-relative URLs from baseUrl if any
+              scheme = '//';
+            } else {
+              // Attempt to infer scheme if not present and not a protocol-relative URL
+              if (typeof window !== 'undefined' && window.location.protocol) {
+                  scheme = window.location.protocol + '//';
+              } else {
+                  scheme = 'https://'; // Default assumption for server-side or unknown client
+              }
+            }
+            
+            const fullPathSegments = [...baseSegments, ...pathSegments];
+            finalUrl = scheme + fullPathSegments.join('/');
           }
           
-          console.log(`[Debug] Retrying with direct URL: ${directUrlAttempt}`); // Added for debugging
-          setImgSrc(directUrlAttempt);
+          console.log(`[Debug] Retrying with direct URL (v2): ${finalUrl}`);
+          setImgSrc(finalUrl);
 
         } catch (error) {
-          console.error('Error setting direct URL:', error);
-          setImgSrc(placeholderBlur); // Fallback to placeholder on error
+          console.error('Error setting direct URL (v2):', error);
+          setImgSrc(placeholderBlur);
           setImgError(true);
         }
       } else {
-        // If not the first attempt, or no resource.url, or resource.url was already tried
         setImgError(true);
       }
 
