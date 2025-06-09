@@ -98,7 +98,7 @@ export default buildConfig({
       // Reduce pool settings for serverless
       poolConfig: {
         max: 1, // Only 1 connection in serverless
-        idleTimeoutMillis: 1000,
+        idleTimeoutMillis: 20000, // Increased: allow idle connections to live longer
         connectionTimeoutMillis: 10000, // Increased timeout for diagnostics
         ssl: { rejectUnauthorized: false } // DIAGNOSTIC: Test if bypassing SSL validation helps
       }
