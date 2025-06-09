@@ -100,6 +100,7 @@ export default buildConfig({
         max: 1, // Only 1 connection in serverless
         idleTimeoutMillis: 1000,
         connectionTimeoutMillis: 3000,
+        ssl: { rejectUnauthorized: false } // DIAGNOSTIC: Test if bypassing SSL validation helps
       }
     })
   : postgresAdapter({
