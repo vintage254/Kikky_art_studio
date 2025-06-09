@@ -134,17 +134,30 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
       // Try direct URL if the optimized one failed
       if (attemptCount === 0 && resource.url) {
         try {
-          const baseUrl = getClientSideURL()
-          // Try without Next.js image optimization
-          const directUrl = `${baseUrl}${resource.url}`
-          setImgSrc(directUrl)
+          const baseUrl = getClientSideURL();
+          let directUrlAttempt = resource.url; // Start with resource.url
+
+          // Check if resource.url is already absolute
+          if (directUrlAttempt.startsWith('http')) {
+            // It's already absolute, use as is
+          } else {
+            // It's relative, join with baseUrl carefully
+            const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+            const cleanResourceUrl = directUrlAttempt.startsWith('/') ? directUrlAttempt : `/${directUrlAttempt}`;
+            directUrlAttempt = `${cleanBaseUrl}${cleanResourceUrl}`;
+          }
+          
+          console.log(`[Debug] Retrying with direct URL: ${directUrlAttempt}`); // Added for debugging
+          setImgSrc(directUrlAttempt);
+
         } catch (error) {
-          console.error('Error setting direct URL:', error)
-          setImgSrc(placeholderBlur)
-          setImgError(true)
+          console.error('Error setting direct URL:', error);
+          setImgSrc(placeholderBlur); // Fallback to placeholder on error
+          setImgError(true);
         }
       } else {
-        setImgError(true)
+        // If not the first attempt, or no resource.url, or resource.url was already tried
+        setImgError(true);
       }
 
       setAttemptCount(prev => prev + 1)
