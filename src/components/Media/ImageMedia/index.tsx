@@ -34,9 +34,10 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
     imgClassName,
     priority,
     resource,
-    size: sizeFromProps,
+    size: sizeFromProps, // This is for next/image sizes attribute
     src: srcFromProps,
     loading: loadingFromProps,
+    payloadImageSize, // This is for requesting a specific size from Payload backend
   } = props
 
   const [imgSrc, setImgSrc] = useState<string | null>(getInitialSrc(srcFromProps))
@@ -57,65 +58,81 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
   };
 
   useEffect(() => {
-    // Initialize image source based on resource
     if (!srcFromProps && resource && typeof resource === 'object') {
-      const { alt: altFromResource, height: fullHeight, url, width: fullWidth, sizes } = resource
+      const { alt: altFromResource, height: fullHeight, url, width: fullWidth, sizes: resourceSizes } = resource;
 
-      width = fullWidth!
-      height = fullHeight!
-      alt = altFromResource || ''
+      // Update local width/height/alt based on the full resource initially
+      // These might be overridden if a specific 'sizeFromProps' is found and used
+      if (fullWidth) width = fullWidth;
+      if (fullHeight) height = fullHeight;
+      alt = altFromResource || '';
 
       try {
-        const baseUrl = getClientSideURL()
+        const baseUrl = getClientSideURL();
 
-        // If a specific size is requested and available in the resource sizes, use that
-        if (sizeFromProps && sizes && typeof sizes === 'object') {
-          const sizeObj = sizes[sizeFromProps as keyof typeof sizes]
-          
-          // If the requested size exists
+        // 1. Check if 'sizeFromProps' (for next/image sizes attribute / direct resource.sizes access) is provided
+        // and if a corresponding size URL exists in resource.sizes.
+        // This logic attempts to use a pre-defined URL from the 'sizes' object in the media resource.
+        if (sizeFromProps && resourceSizes && typeof resourceSizes === 'object') {
+          const sizeObj = resourceSizes[sizeFromProps as keyof typeof resourceSizes];
           if (sizeObj && typeof sizeObj === 'object' && 'url' in sizeObj && sizeObj.url) {
-            const sizeUrl = sizeObj.url
-            const finalSizeUrl = sizeUrl.startsWith('/') || sizeUrl.startsWith('http') 
-              ? sizeUrl 
-              : `${baseUrl}${sizeUrl}`
-              
-            setImgSrc(finalSizeUrl)
+            const sizeSpecificUrl = sizeObj.url;
+            // Determine if the URL from resource.sizes is absolute or needs prepending with baseUrl
+            const finalSizeSpecificUrl = sizeSpecificUrl.startsWith('/') || sizeSpecificUrl.startsWith('http')
+              ? sizeSpecificUrl
+              : `${baseUrl}${sizeSpecificUrl.startsWith('/') ? '' : '/'}${sizeSpecificUrl}`;
             
-            // Update width and height if available in the size object
-            if ('width' in sizeObj && sizeObj.width) width = sizeObj.width
-            if ('height' in sizeObj && sizeObj.height) height = sizeObj.height
+            setImgSrc(finalSizeSpecificUrl);
             
-            return
+            // Update width and height if available in this specific size object
+            if ('width' in sizeObj && sizeObj.width) width = sizeObj.width;
+            if ('height' in sizeObj && sizeObj.height) height = sizeObj.height;
+            return; // Exit early as we've found a specific URL from resource.sizes
           }
         }
 
-        // Handle URL construction properly to avoid invalid URLs
-        if (url) {
-          try {
-            // Handle absolute URLs directly
-            if (url.startsWith('http')) {
-              setImgSrc(url)
-            } else {
-              // For relative URLs, use the URL constructor to safely join paths
-              const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
-              const cleanUrl = url.startsWith('/') ? url : `/${url}`
-              setImgSrc(`${cleanBaseUrl}${cleanUrl}`)
-            }
-          } catch (error) {
-            console.error('Error creating image URL:', error)
-            setImgSrc(placeholderBlur)
+        // 2. If 'sizeFromProps' didn't lead to a URL, construct the main backend URL
+        let constructedBackendUrl: string | null = null;
+        if (url) { // Prioritize resource.url
+          if (url.startsWith('http')) {
+            constructedBackendUrl = url; // Absolute URL
+          } else {
+            // Relative URL, join with baseUrl
+            const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+            const cleanUrlPath = url.startsWith('/') ? url : `/${url}`;
+            constructedBackendUrl = `${cleanBaseUrl}${cleanUrlPath}`;
           }
+        } else if (resource.filename) { // Fallback to filename for API-based retrieval
+          constructedBackendUrl = `${baseUrl}/api/media/file/${resource.filename}`;
         } else {
-          // Use placeholder if no URL provided instead of empty string
-          setImgSrc(placeholderBlur)
-          console.warn('No URL provided for image resource')
+          constructedBackendUrl = placeholderBlur; // Fallback if no URL or filename
         }
+
+        // 3. Apply 'payloadImageSize' to the constructed backend URL (if not placeholder)
+        if (payloadImageSize && constructedBackendUrl && constructedBackendUrl !== placeholderBlur) {
+          const separator = constructedBackendUrl.includes('?') ? '&' : '?';
+          constructedBackendUrl += `${separator}size=${payloadImageSize}`;
+        }
+
+        setImgSrc(constructedBackendUrl);
+
+        if (constructedBackendUrl === placeholderBlur && !(url || resource.filename)) {
+          console.warn('No URL or filename provided for image resource; using placeholder.');
+        }
+
       } catch (error) {
-        console.error('Error constructing image URL:', error)
-        setImgSrc(placeholderBlur)
+        console.error('Error constructing image URL:', error);
+        setImgSrc(placeholderBlur);
       }
+    } else if (srcFromProps) {
+      // If srcFromProps is provided directly (e.g. static import), use it.
+      const initialStaticSrc = getInitialSrc(srcFromProps);
+      setImgSrc(initialStaticSrc);
+    } else {
+      // If no resource and no srcFromProps, use placeholder
+      setImgSrc(placeholderBlur);
     }
-  }, [resource, srcFromProps, sizeFromProps])
+  }, [resource, srcFromProps, sizeFromProps, payloadImageSize]);
 
   const loading = loadingFromProps || (!priority ? 'lazy' : undefined)
 

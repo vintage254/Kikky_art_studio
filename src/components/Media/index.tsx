@@ -8,7 +8,7 @@ import { ImageMedia } from './ImageMedia'
 import { VideoMedia } from './VideoMedia'
 
 export const Media: React.FC<Props> = (props) => {
-  const { className, htmlElement = 'div', resource, fill } = props
+  const { className, htmlElement = 'div', resource, fill, payloadImageSize } = props
 
   const isVideo = typeof resource === 'object' && resource?.mimeType?.includes('video')
   const Tag = htmlElement || Fragment
@@ -25,7 +25,7 @@ export const Media: React.FC<Props> = (props) => {
           }
         : {})}
     >
-      {isVideo ? <VideoMedia {...props} /> : <ImageMedia {...props} />}
+      {isVideo ? <VideoMedia {...props} /> : <ImageMedia {...props} payloadImageSize={payloadImageSize} />}
     </Tag>
   )
 }
