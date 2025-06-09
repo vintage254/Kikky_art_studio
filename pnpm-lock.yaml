@@ -114,8 +114,8 @@ importers:
         specifier: 3.33.0
         version: 3.33.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.7.3)(utf-8-validate@6.0.5)
       payload-cloudinary:
-        specifier: ^1.7.0
-        version: 1.7.0(@types/react@19.1.0)(monaco-editor@0.52.2)(next@15.3.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.77.4))(payload@3.33.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.7.3)(utf-8-validate@6.0.5))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.7.3)
+        specifier: ^2.0.0-alpha.3
+        version: 2.0.0-alpha.3(@types/react@19.1.0)(monaco-editor@0.52.2)(next@15.3.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.77.4))(payload@3.33.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.7.3)(utf-8-validate@6.0.5))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.7.3)
       pg:
         specifier: ^8.16.0
         version: 8.16.0
@@ -4240,8 +4240,8 @@ packages:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
     engines: {node: '>=8'}
 
-  payload-cloudinary@1.7.0:
-    resolution: {integrity: sha512-MCjB9hiCfEY+SDzQN8EQpbvCPYcquoSHBwN1seLIRsVMp3zOP5zmGjQkN8nFcMLXM5HG4OsRUVfWOB6jxQ2IUA==}
+  payload-cloudinary@2.0.0-alpha.3:
+    resolution: {integrity: sha512-D1vRiTVRQTuoOyE9zt3AJR9ahX7iFRynCPREgFLJeSy5wAcrGI8jhxW37DcmHDTv/HPqiUYk2vCmmI2nX+BQNg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       payload: ^2.0.0
@@ -10398,7 +10398,7 @@ snapshots:
 
   path-type@4.0.0: {}
 
-  payload-cloudinary@1.7.0(@types/react@19.1.0)(monaco-editor@0.52.2)(next@15.3.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.77.4))(payload@3.33.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.7.3)(utf-8-validate@6.0.5))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.7.3):
+  payload-cloudinary@2.0.0-alpha.3(@types/react@19.1.0)(monaco-editor@0.52.2)(next@15.3.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.77.4))(payload@3.33.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.7.3)(utf-8-validate@6.0.5))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.7.3):
     dependencies:
       '@payloadcms/plugin-cloud-storage': 3.40.0(@types/react@19.1.0)(monaco-editor@0.52.2)(next@15.3.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.77.4))(payload@3.33.0(bufferutil@4.0.9)(graphql@16.11.0)(typescript@5.7.3)(utf-8-validate@6.0.5))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.7.3)
       cloudinary: 2.6.1
