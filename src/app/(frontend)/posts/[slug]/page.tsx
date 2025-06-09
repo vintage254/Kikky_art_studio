@@ -15,25 +15,78 @@ import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 
+import pg from 'pg'; // This should use your aliased 'pg'
+// Assuming standard module export from your alias for pg.Pool:
+const { Pool } = pg;
+
 export async function generateStaticParams() {
+  console.log('[DEBUG] Attempting direct DB connection test in generateStaticParams for /posts/[slug]...');
+  const dbUri = process.env.DATABASE_URI;
+
+  if (!dbUri) {
+    console.error('[DEBUG] DATABASE_URI environment variable is not set!');
+    return [];
+  }
+
+  let safeDbUri = 'Could not parse DB_URI for safe logging';
   try {
-    // Use Payload directly during build time instead of API routes
-    const payload = await getPayload({ config: configPromise })
+    const url = new URL(dbUri);
+    // Avoid logging user/password from the original URI string
+    safeDbUri = `${url.protocol}//<credentials_hidden>@${url.host}${url.pathname}${url.search}`;
+  } catch (e) {
+    console.error('[DEBUG] Error parsing DATABASE_URI for safe logging:', e);
+  }
+  console.log(`[DEBUG] Using DATABASE_URI (host/path logged): ${safeDbUri}`);
+
+  const testPool = new Pool({
+    connectionString: dbUri,
+    connectionTimeoutMillis: 15000, // Increased timeout for testing (15 seconds)
+    ssl: { rejectUnauthorized: false } // For debugging SSL cert trust issues
+  });
+
+  try {
+    console.log('[DEBUG] Attempting to connect to testPool...');
+    const client = await testPool.connect();
+    console.log('[DEBUG] Direct DB connection test SUCCEEDED!');
     
+    const res = await client.query('SELECT NOW() AS now');
+    console.log('[DEBUG] Query successful, current DB time:', res.rows[0].now);
+    
+    client.release();
+    console.log('[DEBUG] Client released.');
+  } catch (err: any) {
+    console.error('[DEBUG] Direct DB connection test FAILED:');
+    console.error(`[DEBUG] Error Name: ${err.name}`);
+    console.error(`[DEBUG] Error Message: ${err.message}`);
+    console.error(`[DEBUG] Error Code: ${err.code}`);
+    console.error(`[DEBUG] Error Stack: ${err.stack}`);
+  } finally {
+    console.log('[DEBUG] Ending testPool (attempting to close).');
+    await testPool.end();
+    console.log('[DEBUG] testPool ended.');
+  }
+
+  console.log('[DEBUG] Returning empty array from generateStaticParams for /posts/[slug] after DB test.');
+  return [];
+
+  /* --- Original code - Keep this commented out for the test ---
+  try {
+    const payload = await getPayload({ config: configPromise });
     const posts = await payload.find({
       collection: 'posts',
-      limit: 1000,
-    })
+      limit: 1000, // Fetch all posts to generate params
+    });
 
-    const params = posts.docs.map(({ slug }) => {
-      return { slug }
-    })
-
-    return params || []
+    const params = posts.docs.map((post: Post) => ({
+      slug: post.slug,
+    }));
+    
+    return params || [];
   } catch (error) {
-    console.error('Error generating static params for posts:', error)
-    return [] // Return empty array as fallback
+    console.error('Error generating static params for posts (original code):', error);
+    return []; // Fallback to an empty array on error
   }
+  */
 }
 
 type Args = {
