@@ -1,8 +1,9 @@
 // Storage adapter imports
 import { cloudinaryStorage } from 'payload-cloudinary'
-import { postgresAdapter } from '@payloadcms/db-postgres'
+import { postgresAdapter } from '@payloadcms/db-postgres';
+import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres';
 // Import both client and serverless adapters
-import { createNeonServerlessAdapter } from './utilities/database/neon-serverless-adapter'
+
 
 import sharp from 'sharp' // sharp-import
 import path from 'path'
@@ -92,28 +93,16 @@ export default buildConfig({
   editor: defaultLexical,
   // Use Neon serverless adapter when in production (Vercel), or regular PostgreSQL adapter in development
   db: process.env.VERCEL
-  ? createNeonServerlessAdapter({
-      // Add these serverless-specific settings
-      connectionString: process.env.DATABASE_URI,
-      // Reduce pool settings for serverless
-      poolConfig: {
-        max: 1, // Only 1 connection in serverless
-        idleTimeoutMillis: 20000, // Increased: allow idle connections to live longer
-        connectionTimeoutMillis: 10000, // Increased timeout for diagnostics
-        ssl: { rejectUnauthorized: false } // DIAGNOSTIC: Test if bypassing SSL validation helps
-      }
-    })
-  : postgresAdapter({
-      pool: {
-        // Get the connection string from environment
-        connectionString: process.env.DATABASE_URI,
-        // Minimal pooling settings to prevent connection issues
-        max: 2,
-        idleTimeoutMillis: 5000,
-        connectionTimeoutMillis: 5000,
-        allowExitOnIdle: true
-      }
-    }),
+    ? vercelPostgresAdapter({
+        pool: {
+          connectionString: process.env.DATABASE_URI!,
+        },
+      })
+    : postgresAdapter({ // Your local development setup
+        pool: {
+          connectionString: process.env.DATABASE_URI,
+        },
+      }),
   collections: [Pages, Posts, Products, Orders, Carts, Media, Categories, Users],
   endpoints: [...paymentWebhooks],
   globals: [Header, Footer],
